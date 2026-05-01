@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plataforma MB · Planejamento</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --bg-elev: #1a2027;
+    --bg-card: #232b35;
+    --border: #2d3742;
+    --text: #e6e9ef;
+    --text-muted: #9aa4b2;
+    --accent: #4fc3f7;
+    --accent-2: #81c784;
+    --warning: #ffb74d;
+    --danger: #e57373;
+    --info: #ba68c8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h1 { font-size: 2rem; margin-bottom: 0.5rem; color: var(--accent); }
+  header p { color: var(--text-muted); font-size: 1rem; }
+  .badges { margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    flex-wrap: wrap;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .panel { display: none; animation: fade 0.2s ease-in; }
+  .panel.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+  h2 { font-size: 1.4rem; margin-bottom: 1rem; color: var(--accent-2); }
+  h3 { font-size: 1.1rem; margin: 1.5rem 0 0.75rem; color: var(--text); }
+  p, li { color: var(--text); margin-bottom: 0.5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .card-title {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  .card-meta { font-size: 0.85rem; color: var(--text-muted); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    background: var(--bg-card);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 0.65rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--bg-elev);
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  code {
+    background: var(--bg-elev);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+  pre {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+  pre code { background: none; padding: 0; color: var(--text); }
+  .pri-alta { color: var(--danger); font-weight: 600; }
+  .pri-media { color: var(--warning); font-weight: 600; }
+  .pri-baixa { color: var(--accent); font-weight: 600; }
+  .status-mvp { color: var(--accent-2); font-weight: 600; }
+  .status-backlog { color: var(--text-muted); }
+  .arch-diagram {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+  .arch-row {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 0.5rem 0;
+    flex-wrap: wrap;
+  }
+  .arch-box {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    min-width: 140px;
+    font-size: 0.9rem;
+  }
+  .arch-box.client { border-color: var(--info); color: var(--info); }
+  .arch-box.app { border-color: var(--accent); color: var(--accent); }
+  .arch-box.data { border-color: var(--accent-2); color: var(--accent-2); }
+  .arch-box.ext { border-color: var(--warning); color: var(--warning); }
+  .arch-arrow { color: var(--text-muted); font-size: 1.2rem; align-self: center; }
+  .model-block {
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0 6px 6px 0;
+  }
+  .model-name {
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'SF Mono', Monaco, monospace;
+    margin-bottom: 0.4rem;
+  }
+  .field-list { list-style: none; padding-left: 0; font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem; }
+  .field-list li { padding: 0.15rem 0; color: var(--text-muted); }
+  .field-list li strong { color: var(--text); font-weight: 500; }
+  .relation { color: var(--info); }
+  .pk { color: var(--warning); }
+  details { margin-bottom: 0.75rem; }
+  summary {
+    cursor: pointer;
+    padding: 0.6rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  summary:hover { background: var(--bg-elev); }
+  details[open] summary { border-radius: 6px 6px 0 0; border-bottom-color: transparent; }
+  details > div {
+    padding: 1rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+  }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .checklist li:before { content: "☐ "; color: var(--text-muted); margin-right: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Plataforma MB · Planejamento</h1>
+    <p>Sistema de gestão patrimonial e imobiliária da holding familiar</p>
+    <div class="badges">
+      <span class="badge">Django + Unfold</span>
+      <span class="badge">Neon Postgres</span>
+      <span class="badge">Cloudflare R2</span>
+      <span class="badge">Railway</span>
+      <span class="badge">Custo alvo: US$ 0/mês</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="visao">Visão geral</button>
+    <button class="tab" data-tab="arquitetura">Arquitetura de serviços</button>
+    <button class="tab" data-tab="infra">Infraestrutura</button>
+    <button class="tab" data-tab="historias">Histórias de usuário</button>
+    <button class="tab" data-tab="apps">Apps e Models</button>
+    <button class="tab" data-tab="der">DER do banco</button>
+    <button class="tab" data-tab="lembretes">Lembretes & Crons</button>
+    <button class="tab" data-tab="roadmap">Roadmap MVP</button>
+  </nav>
+
+  <!-- VISÃO GERAL -->
+  <section class="panel active" id="visao">
+    <h2>Visão geral</h2>
+    <div class="card">
+      <p>Sistema de uso interno familiar para gestão centralizada de patrimônio imobiliário. Cobre contratos, imóveis, inquilinos, documentos, prazos e relatórios para IR.</p>
+      <p style="margin-top:0.75rem">O responsável reside em Toronto (UTC-5), portanto o sistema precisa operar de forma <strong>autônoma e de baixíssima manutenção</strong>. Uma administradora local cuida do dia-a-dia operacional; o sistema cobre a camada estratégica.</p>
+    </div>
+
+    <h3>Princípios norteadores</h3>
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Baixa manutenção &gt; otimização</div>
+        <div class="card-meta">Aproveitar Django Admin + Unfold ao invés de criar UI customizada. Toda operação interna roda no admin.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Custo zero</div>
+        <div class="card-meta">Toda a stack escolhida tem free tier suficiente para o volume familiar. Crédito mensal de US$ 5 da Railway absorve o app.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Auditabilidade</div>
+        <div class="card-meta">Histórico de alterações em entidades críticas (contratos, imóveis, pagamentos). Soft delete em pessoas. Exigência de IR.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Operação remota-first</div>
+        <div class="card-meta">Todos os prazos críticos disparam alertas automáticos. Nada depende de o responsável "lembrar" de algo.</div>
+      </div>
+    </div>
+
+    <h3>Escopo do MVP</h3>
+    <table>
+      <thead><tr><th>Épico</th><th>Status</th><th>App responsável</th></tr></thead>
+      <tbody>
+        <tr><td>🏠 Patrimônio & Imóveis</td><td class="status-mvp">✅ MVP</td><td><code>imoveis</code></td></tr>
+        <tr><td>📄 Contratos</td><td class="status-mvp">✅ MVP</td><td><code>contratos</code></td></tr>
+        <tr><td>👥 Pessoas & Papéis</td><td class="status-mvp">✅ MVP</td><td><code>pessoas</code></td></tr>
+        <tr><td>📁 Documentos</td><td class="status-mvp">✅ MVP</td><td><code>documentos</code></td></tr>
+        <tr><td>🔔 Lembretes & Tarefas</td><td class="status-mvp">✅ MVP</td><td>management commands + Railway cron</td></tr>
+        <tr><td>📊 Relatórios & IR</td><td class="status-mvp">✅ MVP</td><td>custom admin actions</td></tr>
+        <tr><td>💰 Financeiro</td><td class="status-backlog">🔲 Backlog</td><td><code>financeiro</code></td></tr>
+        <tr><td>🔧 Manutenção</td><td class="status-backlog">🔲 Backlog</td><td><code>manutencao</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ARQUITETURA -->
+  <section class="panel" id="arquitetura">
+    <h2>Arquitetura de serviços</h2>
+
+    <div class="arch-diagram">
+      <div class="arch-row">
+        <div class="arch-box client">👤 Usuário (browser)</div>
+      </div>
+      <div class="arch-arrow">↓ HTTPS</div>
+      <div class="arch-row">
+        <div class="arch-box app">Railway · Django + Unfold (gunicorn)</div>
+      </div>
+      <div class="arch-arrow">↓</div>
+      <div class="arch-row">
+        <div class="arch-box data">Neon Postgres (PITR 7 dias)</div>
+        <div class="arch-box data">Cloudflare R2 (django-storages)</div>
+        <div class="arch-box ext">Railway Cron → manage.py</div>
+      </div>
+    </div>
+
+    <h3>Fluxo de requisições (web)</h3>
+    <ol>
+      <li>Usuário acessa o admin Django via HTTPS na Railway.</li>
+      <li>Django autentica via sessão padrão; Unfold renderiza o admin.</li>
+      <li>Leituras/escritas de dados estruturados → Neon Postgres via <code>psycopg</code>.</li>
+      <li>Uploads de documentos → R2 via <code>django-storages</code> (S3-compatible). URLs assinadas para download privado.</li>
+    </ol>
+
+    <h3>Fluxo de tarefas agendadas</h3>
+    <ol>
+      <li>Railway cron job dispara <code>python manage.py &lt;comando&gt;</code> em horários definidos.</li>
+      <li>Comando lê prazos (contratos vencendo, IPTU, seguro-fiança, reajustes) do Postgres.</li>
+      <li>Sistema gera <code>Tarefa</code>/<code>Lembrete</code> e/ou dispara notificação (e-mail).</li>
+    </ol>
+
+    <h3>Decisões arquiteturais (com motivação)</h3>
+    <table>
+      <thead><tr><th>Decisão</th><th>Alternativas descartadas</th><th>Motivo</th></tr></thead>
+      <tbody>
+        <tr><td>Django Admin + Unfold</td><td>SPA + DRF, Retool</td><td>CRUD, filtros, permissões e audit trail prontos</td></tr>
+        <tr><td>Railway</td><td>Vercel, AWS, PythonAnywhere</td><td>Sem cold start, Django friendly, US$ 5 cobrem tudo</td></tr>
+        <tr><td>Neon Postgres</td><td>RDS, SQLite local</td><td>PITR + free tier; sem custo de backup separado</td></tr>
+        <tr><td>Cloudflare R2</td><td>S3, OneDrive</td><td>Zero egress; suporte nativo no django-storages</td></tr>
+        <tr><td>Railway Cron + manage.py</td><td>Celery + Redis</td><td>Volume não justifica fila; um cron por tarefa basta</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- INFRAESTRUTURA -->
+  <section class="panel" id="infra">
+    <h2>Infraestrutura</h2>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title">Railway · App</div>
+        <ul>
+          <li>Deploy: <code>git push</code> → build automático</li>
+          <li>Crédito mensal: US$ 5 (suficiente para 1 serviço web + crons)</li>
+          <li>Sem cold start (compatível com Django sem ajustes)</li>
+          <li>Variáveis: <code>DATABASE_URL</code>, <code>R2_*</code>, <code>SECRET_KEY</code>, <code>ALLOWED_HOSTS</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Neon · Postgres</div>
+        <ul>
+          <li>Free tier ou Launch (avaliar conforme uso)</li>
+          <li>Backup: PITR de 7 dias incluso</li>
+          <li>Branching de banco para staging (opcional)</li>
+          <li>Conexão: <code>DATABASE_URL</code> via env</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Cloudflare R2 · Storage</div>
+        <ul>
+          <li>10 GB grátis, zero egress</li>
+          <li>Compatível com S3 (boto3)</li>
+          <li>Backend: <code>django-storages</code> com <code>S3Boto3Storage</code></li>
+          <li>Acesso a documentos via URL assinada (privacidade)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Railway · Cron jobs</div>
+        <ul>
+          <li>Cada lembrete = 1 cron chamando 1 management command</li>
+          <li>Frequência típica: diária às 09:00 BRT</li>
+          <li>Ex.: <code>manage.py verificar_contratos_vencendo</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Variáveis de ambiente (esperadas)</h3>
+    <pre><code>DJANGO_SECRET_KEY=...
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=app.railway.app,...
+
+DATABASE_URL=postgres://...neon.tech/...
+
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=plataforma-mb
+R2_ENDPOINT_URL=https://&lt;account&gt;.r2.cloudflarestorage.com
+
+EMAIL_HOST=...
+EMAIL_HOST_USER=...
+EMAIL_HOST_PASSWORD=...</code></pre>
+
+    <h3>Ambientes</h3>
+    <table>
+      <thead><tr><th>Ambiente</th><th>App</th><th>Banco</th><th>Storage</th></tr></thead>
+      <tbody>
+        <tr><td>Local</td><td><code>runserver</code></td><td>Postgres local ou branch Neon</td><td>R2 bucket dev (ou local FS)</td></tr>
+        <tr><td>Produção</td><td>Railway</td><td>Neon main</td><td>R2 bucket prod</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- HISTÓRIAS -->
+  <section class="panel" id="historias">
+    <h2>Histórias de usuário</h2>
+    <p style="color:var(--text-muted); margin-bottom:1rem">30 histórias no MVP · 10 em backlog · 40 no total</p>
+
+    <details open>
+      <summary>🏠 Patrimônio & Imóveis (PAT) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>PAT-01</td><td>Cadastrar imóvel (matrícula, área, IPTU, valor venal, situação)</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>PAT-02</td><td>Múltiplos proprietários com % de participação</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>PAT-03</td><td>Valor de mercado, R$/m² e valor líquido calculados</td><td class="pri-media">Média</td></tr>
+            <tr><td>PAT-04</td><td>Filtrar imóveis por situação</td><td class="pri-media">Média</td></tr>
+            <tr><td>PAT-05</td><td>Histórico de variações do valor de mercado</td><td class="pri-baixa">Baixa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>📄 Contratos (CON) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>CON-01</td><td>Registrar contratos (imóvel, inquilino, vigência, valor, índice)</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>CON-02</td><td>Calcular reajuste anual IGPM/IPCA com 1 clique</td><td class="pri-baixa">Baixa</td></tr>
+            <tr><td>CON-03</td><td>Status do contrato (vigente, vencendo em 60d, encerrado)</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>CON-04</td><td>Tipo de garantia e seu vencimento</td><td class="pri-media">Média</td></tr>
+            <tr><td>CON-05</td><td>Histórico de auditoria das alterações</td><td class="pri-media">Média</td></tr>
+            <tr><td>CON-06</td><td>Gerar recibo mensal em PDF</td><td class="pri-baixa">Baixa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>👥 Pessoas & Papéis (PES) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>PES-01</td><td>Pessoa associada a múltiplos papéis</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>PES-02</td><td>CPF/CNPJ validado e único</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>PES-03</td><td>Soft delete de pessoas inativas</td><td class="pri-media">Média</td></tr>
+            <tr><td>PES-04</td><td>Documentos no perfil do fiador</td><td class="pri-baixa">Baixa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>📁 Documentos (DOC) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>DOC-01</td><td>Anexar documentos a qualquer entidade</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>DOC-02</td><td>Armazenamento R2 com URL assinada</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>DOC-03</td><td>Categorização por tipo</td><td class="pri-media">Média</td></tr>
+            <tr><td>DOC-04</td><td>Upload de comprovantes pela família</td><td class="pri-baixa">Baixa</td></tr>
+            <tr><td>DOC-05</td><td>Data de vencimento + alertas</td><td class="pri-alta">Alta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>🔔 Lembretes & Tarefas (LEM) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>LEM-01</td><td>Alerta 60d antes do vencimento de contrato</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>LEM-02</td><td>Alerta 30d antes do reajuste anual</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>LEM-03</td><td>Alerta IPTU com 10d de antecedência</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>LEM-04</td><td>Tarefas manuais com prazo</td><td class="pri-media">Média</td></tr>
+            <tr><td>LEM-05</td><td>Alerta seguro-fiança 45d</td><td class="pri-baixa">Baixa</td></tr>
+            <tr><td>LEM-06</td><td>Alerta IRPF 90d antes</td><td class="pri-media">Média</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>📊 Relatórios & IR (REL) — MVP</summary>
+      <div>
+        <table>
+          <thead><tr><th>ID</th><th>História</th><th>Prioridade</th></tr></thead>
+          <tbody>
+            <tr><td>REL-01</td><td>Relatório patrimonial consolidado</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>REL-02</td><td>Rendimentos anuais por CPF de proprietário</td><td class="pri-alta">Alta</td></tr>
+            <tr><td>REL-03</td><td>DRE simplificado por imóvel</td><td class="pri-media">Média</td></tr>
+            <tr><td>REL-04</td><td>Inadimplência histórica por inquilino</td><td class="pri-baixa">Baixa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <details>
+      <summary>💰 Financeiro (FIN) — Backlog</summary>
+      <div>
+        <p style="color:var(--text-muted); margin-bottom:0.75rem">FIN-01 a FIN-06 — pagamentos, painel consolidado, IR, IPTU parcelado, despesas dedutíveis, carnê-leão.</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>🔧 Manutenção (MAN) — Backlog</summary>
+      <div>
+        <p style="color:var(--text-muted); margin-bottom:0.75rem">MAN-01 a MAN-04 — ordens de serviço, histórico, anexos, categorização.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- APPS E MODELS -->
+  <section class="panel" id="apps">
+    <h2>Apps e Models</h2>
+
+    <h3>Estrutura Django</h3>
+    <pre><code>plataforma_mb/
+├── pessoas/        # Pessoa + Perfis (Party pattern)
+├── imoveis/        # Imovel, ImovelProprietario
+├── contratos/      # Contrato, Garantia
+├── documentos/     # Documento (GenericForeignKey)
+├── financeiro/     # [Backlog] Pagamento, Despesa, IPTU
+└── core/           # Tarefa, Lembrete, base abstratas</code></pre>
+
+    <h3>App: <code>pessoas</code></h3>
+    <div class="model-block">
+      <div class="model-name">Pessoa</div>
+      <ul class="field-list">
+        <li><strong>id</strong> <span class="pk">PK</span></li>
+        <li><strong>nome</strong> CharField</li>
+        <li><strong>cpf_cnpj</strong> CharField <span class="pk">unique=True</span></li>
+        <li><strong>tipo</strong> TextChoices (PF, PJ)</li>
+        <li><strong>email, telefone, endereço</strong></li>
+        <li><strong>ativo</strong> BooleanField (soft delete)</li>
+      </ul>
+    </div>
+    <div class="model-block">
+      <div class="model-name">PerfilProprietario / PerfilCliente / PerfilImobiliaria / PerfilFiador / PerfilConstrutora</div>
+      <ul class="field-list">
+        <li><strong>pessoa</strong> <span class="relation">OneToOneField → Pessoa</span></li>
+        <li>+ campos específicos do papel (ex.: <strong>taxa_administracao</strong> em Imobiliária; <strong>comprovante_renda</strong> em Fiador)</li>
+      </ul>
+    </div>
+
+    <h3>App: <code>imoveis</code></h3>
+    <div class="model-block">
+      <div class="model-name">Imovel</div>
+      <ul class="field-list">
+        <li><strong>id</strong> <span class="pk">PK</span></li>
+        <li><strong>endereco, matricula, iptu_inscricao</strong></li>
+        <li><strong>area_m2, valor_venal, valor_mercado</strong></li>
+        <li><strong>situacao</strong> TextChoices (alugado, vago, reforma, vendido)</li>
+        <li><strong>responsavel_familiar</strong> <span class="relation">FK → PerfilProprietario</span></li>
+        <li>@property <strong>valor_m2, valor_liquido_estimado</strong></li>
+      </ul>
+    </div>
+    <div class="model-block">
+      <div class="model-name">ImovelProprietario (through)</div>
+      <ul class="field-list">
+        <li><strong>imovel</strong> <span class="relation">FK → Imovel (PROTECT)</span></li>
+        <li><strong>proprietario</strong> <span class="relation">FK → PerfilProprietario (PROTECT)</span></li>
+        <li><strong>participacao</strong> Decimal (0..1) — soma por imóvel = 1 (clean())</li>
+      </ul>
+    </div>
+
+    <h3>App: <code>contratos</code></h3>
+    <div class="model-block">
+      <div class="model-name">Contrato</div>
+      <ul class="field-list">
+        <li><strong>imovel</strong> <span class="relation">FK → Imovel (PROTECT)</span></li>
+        <li><strong>cliente</strong> <span class="relation">FK → PerfilCliente (PROTECT)</span></li>
+        <li><strong>imobiliaria</strong> <span class="relation">FK → PerfilImobiliaria (PROTECT, null)</span></li>
+        <li><strong>vigencia_inicio, vigencia_fim</strong></li>
+        <li><strong>valor_aluguel</strong> Decimal</li>
+        <li><strong>indice_reajuste</strong> TextChoices (IGPM, IPCA)</li>
+        <li><strong>data_reajuste</strong> Date</li>
+        <li><strong>status</strong> TextChoices (vigente, vencendo, encerrado)</li>
+        <li>+ HistoricalRecords (django-simple-history)</li>
+      </ul>
+    </div>
+    <div class="model-block">
+      <div class="model-name">Garantia</div>
+      <ul class="field-list">
+        <li><strong>contrato</strong> <span class="relation">OneToOne → Contrato</span></li>
+        <li><strong>tipo</strong> TextChoices (caucao, fianca, seguro)</li>
+        <li><strong>fiador</strong> <span class="relation">FK → PerfilFiador (null, PROTECT)</span></li>
+        <li><strong>vencimento</strong> Date</li>
+      </ul>
+    </div>
+
+    <h3>App: <code>documentos</code></h3>
+    <div class="model-block">
+      <div class="model-name">Documento</div>
+      <ul class="field-list">
+        <li><strong>arquivo</strong> FileField (R2 via django-storages)</li>
+        <li><strong>tipo</strong> TextChoices (matricula, contrato, comprovante, laudo, escritura, procuracao, seguro)</li>
+        <li><strong>vencimento</strong> Date (null)</li>
+        <li><strong>content_type, object_id, content_object</strong> <span class="relation">GenericForeignKey</span></li>
+      </ul>
+    </div>
+
+    <h3>App: <code>core</code> (transversal)</h3>
+    <div class="model-block">
+      <div class="model-name">Tarefa / Lembrete</div>
+      <ul class="field-list">
+        <li><strong>titulo, descricao, vencimento</strong></li>
+        <li><strong>recorrencia</strong> TextChoices (anual, mensal, unica)</li>
+        <li><strong>tipo</strong> (reajuste, renovacao, iptu, seguro, irpf, manual)</li>
+        <li><strong>concluida</strong> BooleanField</li>
+        <li><strong>content_type, object_id</strong> <span class="relation">GenericForeignKey</span></li>
+      </ul>
+    </div>
+
+    <h3>Padrões obrigatórios</h3>
+    <ul>
+      <li><code>on_delete=PROTECT</code> em todas as FKs de perfis (auditoria/IR)</li>
+      <li>Soft delete em <code>Pessoa</code> via <code>ativo</code> — nunca delete físico</li>
+      <li>Campos calculados sempre <code>@property</code>, nunca persistidos</li>
+      <li>Enums via <code>TextChoices</code>, nunca model separada</li>
+      <li>Histórico em <code>Contrato</code>, <code>Imovel</code>, <code>Pagamento</code> via <code>django-simple-history</code></li>
+      <li>FKs apontam para <strong>Perfil</strong>, nunca para <code>Pessoa</code> direto</li>
+    </ul>
+  </section>
+
+  <!-- DER -->
+  <section class="panel" id="der">
+    <h2>DER · Diagrama Entidade-Relacionamento</h2>
+    <p style="color:var(--text-muted); margin-bottom:1rem">Representação textual das entidades e cardinalidades. As setas indicam <code>FK</code> ou <code>OneToOne</code>.</p>
+
+    <pre><code>┌─────────────────────────┐
+│        Pessoa           │
+│ • cpf_cnpj (UNIQUE)     │
+│ • nome, tipo (PF/PJ)    │
+│ • ativo (soft delete)   │
+└─────────────────────────┘
+           │ 1
+           │
+   ┌───────┼─────────┬──────────────┬──────────────┬──────────────┐
+   │ 0..1  │ 0..1    │ 0..1         │ 0..1         │ 0..1         │
+   ▼       ▼         ▼              ▼              ▼              ▼
+┌──────┐ ┌──────┐ ┌──────────────┐ ┌──────────┐ ┌──────────────┐
+│Perfil│ │Perfil│ │  Perfil      │ │  Perfil  │ │   Perfil     │
+│Propr.│ │Cliente│ │ Imobiliaria  │ │  Fiador  │ │ Construtora  │
+└──────┘ └──────┘ └──────────────┘ └──────────┘ └──────────────┘
+   │ 1       │ 1        │ 0..1            │ 0..1
+   │         │          │                 │
+   │         │          │                 │
+   │       ┌─┴────────────────────────────┴──┐
+   │       │           Contrato              │
+   │       │ • vigencia, valor, indice       │
+   │       │ • status, data_reajuste         │
+   │       │ + HistoricalRecords             │
+   │       └─────────────────┬───────────────┘
+   │                         │ 1
+   │                         │
+   │           ┌─────────────┴──────────────┐
+   │           │         Garantia           │
+   │           │ • tipo, vencimento         │
+   │           └────────────────────────────┘
+   │
+   │ N (through ImovelProprietario)
+   │     ┌──────────────────────────┐
+   └────►│   ImovelProprietario     │
+         │ • participacao (Σ = 1)   │
+         └────────┬─────────────────┘
+                  │ N
+                  ▼
+         ┌──────────────────────────┐
+         │         Imovel           │
+         │ • matricula, area, IPTU  │
+         │ • valor_venal, mercado   │
+         │ • situacao               │
+         │ + HistoricalRecords      │
+         └──────────────────────────┘
+                  ▲ 1
+                  │
+                  │ FK (também é referenciado por Contrato)
+
+
+┌──────────────────────────────────────────┐
+│            Documento                     │
+│ • arquivo (R2)                           │
+│ • tipo, vencimento                       │
+│ • content_object (GenericFK) ───────────┼──► Imovel | Contrato | Pessoa | Perfil*
+└──────────────────────────────────────────┘
+
+┌──────────────────────────────────────────┐
+│         Tarefa / Lembrete                │
+│ • vencimento, recorrencia, tipo          │
+│ • content_object (GenericFK) ───────────┼──► Imovel | Contrato | etc.
+└──────────────────────────────────────────┘</code></pre>
+
+    <h3>Cardinalidades-chave</h3>
+    <table>
+      <thead><tr><th>Relação</th><th>Cardinalidade</th><th>on_delete</th></tr></thead>
+      <tbody>
+        <tr><td>Pessoa → Perfil*</td><td>1 : 0..N (um por papel)</td><td>CASCADE (perfil sem pessoa não existe)</td></tr>
+        <tr><td>Imovel ↔ PerfilProprietario</td><td>N : N (via ImovelProprietario)</td><td>PROTECT</td></tr>
+        <tr><td>Contrato → Imovel</td><td>N : 1</td><td>PROTECT</td></tr>
+        <tr><td>Contrato → PerfilCliente</td><td>N : 1</td><td>PROTECT</td></tr>
+        <tr><td>Contrato → PerfilImobiliaria</td><td>N : 0..1</td><td>PROTECT</td></tr>
+        <tr><td>Contrato ↔ Garantia</td><td>1 : 0..1</td><td>CASCADE</td></tr>
+        <tr><td>Garantia → PerfilFiador</td><td>N : 0..1</td><td>PROTECT</td></tr>
+        <tr><td>Documento → *</td><td>N : 1 (GenericForeignKey)</td><td>n/a (Generic)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Invariantes</h3>
+    <ul>
+      <li><code>Pessoa.cpf_cnpj</code> único — chave natural anti-duplicidade</li>
+      <li><code>Σ ImovelProprietario.participacao</code> por <code>imovel</code> = <code>1.0</code> (validado em <code>clean()</code>)</li>
+      <li>Pessoa com qualquer histórico → nunca deletar (PROTECT em todas as FKs de perfil)</li>
+      <li>Reajuste e vencimento sempre populados em <code>Contrato</code> ativo (lembretes dependem disso)</li>
+    </ul>
+  </section>
+
+  <!-- LEMBRETES -->
+  <section class="panel" id="lembretes">
+    <h2>Lembretes & Crons</h2>
+    <p style="color:var(--text-muted); margin-bottom:1rem">Toda automação roda como Railway cron job chamando um Django management command. Sem Celery, sem fila — volume não justifica.</p>
+
+    <table>
+      <thead><tr><th>Lembrete</th><th>Comando</th><th>Frequência</th><th>Critério</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>LEM-01 · Vencimento de contrato</td>
+          <td><code>verificar_contratos_vencendo</code></td>
+          <td>Diário 09:00 BRT</td>
+          <td><code>vigencia_fim - today() == 60d</code></td>
+        </tr>
+        <tr>
+          <td>LEM-02 · Reajuste anual</td>
+          <td><code>verificar_reajustes</code></td>
+          <td>Diário 09:00 BRT</td>
+          <td><code>data_reajuste - today() == 30d</code></td>
+        </tr>
+        <tr>
+          <td>LEM-03 · IPTU</td>
+          <td><code>verificar_iptu</code></td>
+          <td>Diário 09:00 BRT</td>
+          <td>Parcela com vencimento em 10d</td>
+        </tr>
+        <tr>
+          <td>LEM-05 · Seguro-fiança</td>
+          <td><code>verificar_garantias</code></td>
+          <td>Semanal seg 09:00</td>
+          <td><code>Garantia.vencimento - today() == 45d</code></td>
+        </tr>
+        <tr>
+          <td>LEM-06 · IRPF</td>
+          <td><code>lembrar_irpf</code></td>
+          <td>Anual 01/dez</td>
+          <td>90d antes do prazo</td>
+        </tr>
+        <tr>
+          <td>DOC-05 · Documentos vencendo</td>
+          <td><code>verificar_documentos_vencendo</code></td>
+          <td>Diário 09:00 BRT</td>
+          <td>Documento com <code>vencimento</code> em 30d</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Padrão de implementação</h3>
+    <pre><code># core/management/commands/verificar_contratos_vencendo.py
+from django.core.management.base import BaseCommand
+from datetime import date, timedelta
+from contratos.models import Contrato
+from core.models import Tarefa
+
+class Command(BaseCommand):
+    def handle(self, *args, **opts):
+        alvo = date.today() + timedelta(days=60)
+        for c in Contrato.objects.filter(vigencia_fim=alvo, status="vigente"):
+            Tarefa.objects.get_or_create(
+                content_object=c,
+                tipo="renovacao",
+                defaults={"titulo": f"Renovar contrato {c}", "vencimento": c.vigencia_fim}
+            )</code></pre>
+
+    <h3>Notificação</h3>
+    <p>MVP: <code>Tarefa</code> aparece no admin Django + e-mail simples via SMTP. Sem push, sem WhatsApp na primeira versão.</p>
+  </section>
+
+  <!-- ROADMAP -->
+  <section class="panel" id="roadmap">
+    <h2>Roadmap MVP</h2>
+
+    <h3>Fase 0 — Setup (1-2 dias)</h3>
+    <ul class="checklist">
+      <li>Criar projeto Django + virtualenv + <code>requirements.txt</code></li>
+      <li>Configurar Unfold como admin</li>
+      <li>Conectar Neon Postgres via <code>DATABASE_URL</code></li>
+      <li>Configurar django-storages com R2</li>
+      <li>Criar conta Railway, conectar repo, primeiro deploy</li>
+      <li>Configurar variáveis de ambiente</li>
+    </ul>
+
+    <h3>Fase 1 — Pessoas (PES) (2-3 dias)</h3>
+    <ul class="checklist">
+      <li>Model <code>Pessoa</code> com <code>cpf_cnpj</code> único e validação</li>
+      <li>Models <code>Perfil*</code> (5 perfis) com OneToOne</li>
+      <li>Admin: <code>PessoaAdmin</code> com inlines + admins próprios por perfil</li>
+      <li>Soft delete via <code>ativo</code>; filtros no admin</li>
+    </ul>
+
+    <h3>Fase 2 — Imóveis (PAT) (2-3 dias)</h3>
+    <ul class="checklist">
+      <li>Model <code>Imovel</code> + <code>ImovelProprietario</code> through</li>
+      <li>Validação <code>clean()</code> de soma de participações = 1</li>
+      <li><code>@property</code> calculadas (R$/m², líquido)</li>
+      <li>Filtros por situação no admin</li>
+      <li>django-simple-history em <code>Imovel</code></li>
+    </ul>
+
+    <h3>Fase 3 — Contratos (CON) (3-4 dias)</h3>
+    <ul class="checklist">
+      <li>Models <code>Contrato</code> + <code>Garantia</code></li>
+      <li>Histórico de auditoria</li>
+      <li>Status calculado (vigente/vencendo/encerrado)</li>
+      <li>Custom action: calcular reajuste IGPM/IPCA</li>
+      <li>Custom action: gerar recibo PDF (ReportLab ou WeasyPrint)</li>
+    </ul>
+
+    <h3>Fase 4 — Documentos (DOC) (1-2 dias)</h3>
+    <ul class="checklist">
+      <li>Model <code>Documento</code> com <code>GenericForeignKey</code></li>
+      <li>Upload para R2 funcionando</li>
+      <li>URLs assinadas para download</li>
+      <li>Inline no admin de imóvel/contrato/pessoa</li>
+    </ul>
+
+    <h3>Fase 5 — Lembretes (LEM) (2-3 dias)</h3>
+    <ul class="checklist">
+      <li>Model <code>Tarefa</code> com GenericFK</li>
+      <li>Management commands (6 lembretes)</li>
+      <li>Configurar Railway crons</li>
+      <li>Envio de e-mail simples via SMTP</li>
+    </ul>
+
+    <h3>Fase 6 — Relatórios (REL) (2-3 dias)</h3>
+    <ul class="checklist">
+      <li>Custom action: relatório patrimonial consolidado</li>
+      <li>Custom action: rendimentos por CPF (export para IR)</li>
+      <li>DRE simplificado por imóvel</li>
+    </ul>
+
+    <h3>Estimativa total</h3>
+    <p><strong>~13-20 dias de desenvolvimento</strong> para o MVP completo, considerando dedicação parcial.</p>
+
+    <h3>Pós-MVP (backlog)</h3>
+    <ul>
+      <li>Épico Financeiro (FIN-01 a FIN-06)</li>
+      <li>Épico Manutenção (MAN-01 a MAN-04)</li>
+      <li>Notificações além de e-mail (WhatsApp via Twilio?)</li>
+      <li>Dashboard agregado fora do admin (opcional)</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      tabs.forEach(t => t.classList.toggle('active', t === tab));
+      panels.forEach(p => p.classList.toggle('active', p.id === target));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
