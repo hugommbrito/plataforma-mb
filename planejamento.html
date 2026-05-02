@@ -212,6 +212,8 @@
     border-bottom: 1px solid var(--border);
   }
   .checklist li:before { content: "☐ "; color: var(--text-muted); margin-right: 0.5rem; }
+  .checklist li.done { color: var(--text-muted); text-decoration: line-through; }
+  .checklist li.done:before { content: "✅ "; text-decoration: none; display: inline-block; }
 </style>
 </head>
 <body>
@@ -529,36 +531,46 @@ EMAIL_HOST_PASSWORD=...</code></pre>
 ├── financeiro/     # [Backlog] Pagamento, Despesa, IPTU
 └── core/           # Tarefa, Lembrete, base abstratas</code></pre>
 
-    <h3>App: <code>pessoas</code></h3>
+    <h3>App: <code>pessoas</code> ✅</h3>
     <div class="model-block">
       <div class="model-name">Pessoa</div>
       <ul class="field-list">
         <li><strong>id</strong> <span class="pk">PK</span></li>
-        <li><strong>nome</strong> CharField</li>
-        <li><strong>cpf_cnpj</strong> CharField <span class="pk">unique=True</span></li>
+        <li><strong>nome, apelido</strong> CharField</li>
+        <li><strong>cpf_cnpj</strong> CharField <span class="pk">unique=True</span> — persiste só dígitos (11=CPF, 14=CNPJ)</li>
         <li><strong>tipo</strong> TextChoices (PF, PJ)</li>
         <li><strong>email, telefone, endereço</strong></li>
         <li><strong>ativo</strong> BooleanField (soft delete)</li>
       </ul>
     </div>
     <div class="model-block">
-      <div class="model-name">PerfilProprietario / PerfilCliente / PerfilImobiliaria / PerfilFiador / PerfilConstrutora</div>
+      <div class="model-name">PerfilProprietario</div>
       <ul class="field-list">
-        <li><strong>pessoa</strong> <span class="relation">OneToOneField → Pessoa</span></li>
-        <li>+ campos específicos do papel (ex.: <strong>taxa_administracao</strong> em Imobiliária; <strong>comprovante_renda</strong> em Fiador)</li>
+        <li><strong>pessoa</strong> <span class="relation">OneToOneField → Pessoa (PROTECT)</span></li>
+        <li><strong>interno</strong> BooleanField — distingue membros da família/holding de terceiros</li>
+      </ul>
+    </div>
+    <div class="model-block">
+      <div class="model-name">PerfilCliente / PerfilImobiliaria / PerfilFiador</div>
+      <ul class="field-list">
+        <li><strong>pessoa</strong> <span class="relation">OneToOneField → Pessoa (PROTECT)</span></li>
+        <li>+ campos específicos do papel (profissão, renda, CRECI, contato responsável)</li>
       </ul>
     </div>
 
-    <h3>App: <code>imoveis</code></h3>
+    <h3>App: <code>imoveis</code> ✅</h3>
     <div class="model-block">
       <div class="model-name">Imovel</div>
       <ul class="field-list">
         <li><strong>id</strong> <span class="pk">PK</span></li>
-        <li><strong>endereco, matricula, iptu_inscricao</strong></li>
-        <li><strong>area_m2, valor_venal, valor_mercado</strong></li>
-        <li><strong>situacao</strong> TextChoices (alugado, vago, reforma, vendido)</li>
-        <li><strong>responsavel_familiar</strong> <span class="relation">FK → PerfilProprietario</span></li>
-        <li>@property <strong>valor_m2, valor_liquido_estimado</strong></li>
+        <li><strong>nome, tipo, status</strong> — TextChoices</li>
+        <li><strong>endereco, complemento, bairro, cidade, estado, cep</strong></li>
+        <li><strong>area_total, quartos, vagas</strong></li>
+        <li><strong>valor_mercado, matricula</strong></li>
+        <li>@property <strong>valor_por_m2</strong> — valor_mercado / area_total</li>
+        <li>@property <strong>participacao_interna_pct</strong> — soma participações com interno=True</li>
+        <li>@property <strong>valor_interno</strong> — valor_mercado × participacao_interna_pct</li>
+        <li>+ HistoricalRecords (django-simple-history)</li>
       </ul>
     </div>
     <div class="model-block">
@@ -566,7 +578,7 @@ EMAIL_HOST_PASSWORD=...</code></pre>
       <ul class="field-list">
         <li><strong>imovel</strong> <span class="relation">FK → Imovel (PROTECT)</span></li>
         <li><strong>proprietario</strong> <span class="relation">FK → PerfilProprietario (PROTECT)</span></li>
-        <li><strong>participacao</strong> Decimal (0..1) — soma por imóvel = 1 (clean())</li>
+        <li><strong>participacao</strong> Decimal (0..1) — clean() valida soma ≤ 1</li>
       </ul>
     </div>
 
@@ -642,14 +654,14 @@ EMAIL_HOST_PASSWORD=...</code></pre>
 └─────────────────────────┘
            │ 1
            │
-   ┌───────┼─────────┬──────────────┬──────────────┬──────────────┐
-   │ 0..1  │ 0..1    │ 0..1         │ 0..1         │ 0..1         │
-   ▼       ▼         ▼              ▼              ▼              ▼
-┌──────┐ ┌──────┐ ┌──────────────┐ ┌──────────┐ ┌──────────────┐
-│Perfil│ │Perfil│ │  Perfil      │ │  Perfil  │ │   Perfil     │
-│Propr.│ │Cliente│ │ Imobiliaria  │ │  Fiador  │ │ Construtora  │
-└──────┘ └──────┘ └──────────────┘ └──────────┘ └──────────────┘
-   │ 1       │ 1        │ 0..1            │ 0..1
+   ┌───────┼─────────┬──────────────┬──────────────┐
+   │ 0..1  │ 0..1    │ 0..1         │ 0..1         │
+   ▼       ▼         ▼              ▼              ▼
+┌──────┐ ┌──────┐ ┌──────────────┐ ┌──────────┐
+│Perfil│ │Perfil│ │  Perfil      │ │  Perfil  │
+│Propr.│ │Cliente│ │ Imobiliaria  │ │  Fiador  │
+└──────┘ └──────┘ └──────────────┘ └──────────┘
+   │ 1       │ 1        │ 0..1            │ 0..1  (PerfilConstrutora: backlog)
    │         │          │                 │
    │         │          │                 │
    │       ┌─┴────────────────────────────┴──┐
@@ -701,7 +713,7 @@ EMAIL_HOST_PASSWORD=...</code></pre>
     <table>
       <thead><tr><th>Relação</th><th>Cardinalidade</th><th>on_delete</th></tr></thead>
       <tbody>
-        <tr><td>Pessoa → Perfil*</td><td>1 : 0..N (um por papel)</td><td>CASCADE (perfil sem pessoa não existe)</td></tr>
+        <tr><td>Pessoa → Perfil*</td><td>1 : 0..N (um por papel)</td><td>PROTECT — impede deleção de Pessoa com histórico</td></tr>
         <tr><td>Imovel ↔ PerfilProprietario</td><td>N : N (via ImovelProprietario)</td><td>PROTECT</td></tr>
         <tr><td>Contrato → Imovel</td><td>N : 1</td><td>PROTECT</td></tr>
         <tr><td>Contrato → PerfilCliente</td><td>N : 1</td><td>PROTECT</td></tr>
@@ -715,7 +727,7 @@ EMAIL_HOST_PASSWORD=...</code></pre>
     <h3>Invariantes</h3>
     <ul>
       <li><code>Pessoa.cpf_cnpj</code> único — chave natural anti-duplicidade</li>
-      <li><code>Σ ImovelProprietario.participacao</code> por <code>imovel</code> = <code>1.0</code> (validado em <code>clean()</code>)</li>
+      <li><code>Σ ImovelProprietario.participacao</code> por <code>imovel</code> ≤ <code>1.0</code> (validado em <code>clean()</code> — validação exata = 1 no backlog)</li>
       <li>Pessoa com qualquer histórico → nunca deletar (PROTECT em todas as FKs de perfil)</li>
       <li>Reajuste e vencimento sempre populados em <code>Contrato</code> ativo (lembretes dependem disso)</li>
     </ul>
@@ -795,29 +807,29 @@ class Command(BaseCommand):
 
     <h3>Fase 0 — Setup (1-2 dias)</h3>
     <ul class="checklist">
-      <li>Criar projeto Django + virtualenv + <code>requirements.txt</code></li>
-      <li>Configurar Unfold como admin</li>
-      <li>Conectar Neon Postgres via <code>DATABASE_URL</code></li>
+      <li class="done">Criar projeto Django + virtualenv + <code>requirements.txt</code></li>
+      <li class="done">Configurar Unfold como admin</li>
+      <li class="done">Conectar Neon Postgres via <code>DATABASE_URL</code></li>
       <li>Configurar django-storages com R2</li>
-      <li>Criar conta Railway, conectar repo, primeiro deploy</li>
-      <li>Configurar variáveis de ambiente</li>
+      <li class="done">Criar conta Railway, conectar repo, primeiro deploy</li>
+      <li class="done">Configurar variáveis de ambiente</li>
     </ul>
 
     <h3>Fase 1 — Pessoas (PES) (2-3 dias)</h3>
     <ul class="checklist">
-      <li>Model <code>Pessoa</code> com <code>cpf_cnpj</code> único e validação</li>
-      <li>Models <code>Perfil*</code> (5 perfis) com OneToOne</li>
-      <li>Admin: <code>PessoaAdmin</code> com inlines + admins próprios por perfil</li>
-      <li>Soft delete via <code>ativo</code>; filtros no admin</li>
+      <li class="done">Model <code>Pessoa</code> com <code>cpf_cnpj</code> único (persiste só dígitos; máscara CPF/CNPJ no widget)</li>
+      <li class="done">Models <code>Perfil*</code> (4 perfis MVP: Proprietário, Cliente, Imobiliária, Fiador) com OneToOne</li>
+      <li class="done">Admin: <code>PessoaAdmin</code> com inlines + admins próprios por perfil</li>
+      <li class="done">Soft delete via <code>ativo</code>; filtros no admin</li>
     </ul>
 
     <h3>Fase 2 — Imóveis (PAT) (2-3 dias)</h3>
     <ul class="checklist">
-      <li>Model <code>Imovel</code> + <code>ImovelProprietario</code> through</li>
-      <li>Validação <code>clean()</code> de soma de participações = 1</li>
-      <li><code>@property</code> calculadas (R$/m², líquido)</li>
-      <li>Filtros por situação no admin</li>
-      <li>django-simple-history em <code>Imovel</code></li>
+      <li class="done">Model <code>Imovel</code> + <code>ImovelProprietario</code> through</li>
+      <li class="done">Validação <code>clean()</code> de soma de participações ≤ 1 (validação = 1 no backlog)</li>
+      <li class="done"><code>@property</code> calculadas: <code>valor_por_m2</code>, <code>participacao_interna_pct</code>, <code>valor_interno</code></li>
+      <li class="done">Filtros por situação/tipo/estado no admin</li>
+      <li class="done">django-simple-history em <code>Imovel</code></li>
     </ul>
 
     <h3>Fase 3 — Contratos (CON) (3-4 dias)</h3>

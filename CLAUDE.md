@@ -31,7 +31,7 @@ Híbrido: administradora local cuida do dia-a-dia. O sistema cobre a camada estr
 
 ## Apps Django
 
-`pessoas`, `imoveis`, `contratos`, `financeiro`, `documentos`.
+`pessoas`, `imoveis`, `contratos`, `financeiro`, `documentos`, `core` (Tarefa/Lembrete).
 
 ## Domínio
 
@@ -48,16 +48,26 @@ Híbrido: administradora local cuida do dia-a-dia. O sistema cobre a camada estr
 Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF/CNPJ pode ser proprietário, imobiliária, cliente e fiador).
 
 - Model única `Pessoa` com dados comuns (nome, CPF/CNPJ `unique=True`, contato, endereço, tipo PF/PJ).
-- Cada papel é um `Perfil*` separado (`PerfilProprietario`, `PerfilCliente`, `PerfilImobiliaria`, `PerfilFiador`, `PerfilConstrutora`) com `OneToOneField` para `Pessoa`.
-- Cada perfil carrega **apenas** os campos específicos daquele papel (ex.: `taxa_administracao` só em `PerfilImobiliaria`; `comprovante_renda` só em `PerfilFiador`).
+- Cada papel é um `Perfil*` separado com `OneToOneField` para `Pessoa`. MVP tem 4 perfis: `PerfilProprietario`, `PerfilCliente`, `PerfilImobiliaria`, `PerfilFiador`. `PerfilConstrutora` está no backlog.
+- Cada perfil carrega **apenas** os campos específicos daquele papel.
+- `cpf_cnpj` persiste **apenas dígitos** no banco (11=CPF, 14=CNPJ), campo opcional (`blank=True`). Formatação e máscara progressiva feitas via `CpfCnpjWidget` + `CpfCnpjField` em `pessoas/widgets.py` e `pessoas/forms.py`.
+- `PerfilProprietario` tem flag `interno` (BooleanField) para distinguir membros da família/holding de terceiros.
 - FKs de outras models apontam para o **perfil**, nunca para `Pessoa` direto. Ex.: `Contrato.cliente → PerfilCliente`. Isso restringe os dropdowns aos papéis corretos.
 - `on_delete=PROTECT` em todas as FKs de perfis — nunca apagar pessoas com histórico (exigência IR/auditoria).
 - Soft delete em `Pessoa` via campo `ativo`. Nunca delete físico.
 - No admin (Unfold): perfis como `StackedInline` em `PessoaAdmin` + `ModelAdmin` próprio para visões dedicadas ("Imobiliárias", "Clientes" etc).
 
+### Utilitários e padrões de exibição
+
+- **Formatação de moeda:** `formatar_moeda(valor)` em `config/utils.py` — usar em todos os `@admin.display` que exibem R$. Retorna `'—'` para `None`.
+- **Widgets customizados:** sempre subclassear `UnfoldAdminTextInputWidget` (não `TextInput`) para manter a estilização Tailwind do Unfold.
+- **Datalist dinâmico:** campos com sugestões baseadas em dados existentes usam `<datalist>` + JS inline (ver `imoveis/widgets.py` — `EstadoWidget` com UFs estáticos, `CidadeWidget` filtrado por estado via JSON injetado no DOM).
+- **Totais na listagem:** usar `list_after_template` + override de `changelist_view` para injetar totais no contexto (ver `ImovelAdmin`).
+
 ### Outros padrões
 
-- **Múltiplos proprietários por imóvel** via through model `ImovelProprietario` com campo `participacao` (Decimal). `clean()` valida que a soma das participações de um imóvel = 1.
+- **Múltiplos proprietários por imóvel** via through model `ImovelProprietario` com campo `participacao` (Decimal). `clean()` valida que a soma não ultrapassa 1 (validação de exatamente = 1 no nível do `Imovel.clean()` está no backlog).
+- **Participação interna** calculada via `@property participacao_interna_pct` (soma dos proprietários com `interno=True`) e `@property valor_interno` (`valor_mercado × participacao_interna_pct`).
 - **Campos calculados** (% do valor de mercado, R$/m², valor líquido estimado) sempre como `@property`. Nunca persistir.
 - **Enums fixos** via `TextChoices`. Não criar models separadas para status/tipo/categoria.
 - **Histórico de alterações** em `Contrato`, `Imovel` e `Pagamento` via `django-simple-history` ou `django-auditlog`.
@@ -68,8 +78,8 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 Ordem de implementação acordada (~13-20 dias com dedicação parcial):
 
 - **Fase 0 — Setup:** projeto Django + Unfold, Neon via `DATABASE_URL`, deploy inicial Railway, env vars. ✅
-- **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único, 5 `Perfil*` via OneToOne, admin com inlines + admins próprios por perfil, soft delete via `ativo`.
-- **Fase 2 — Imóveis (PAT):** `Imovel` + through `ImovelProprietario`, validação `clean()` da soma de participações = 1, `@property` calculadas, django-simple-history.
+- **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único (dígitos), 4 `Perfil*` MVP via OneToOne, máscara CPF/CNPJ no widget, admin com inlines + admins próprios por perfil, soft delete via `ativo`. ✅
+- **Fase 2 — Imóveis (PAT):** `Imovel` + through `ImovelProprietario`, `clean()` valida soma ≤ 1, `@property` calculadas (`valor_por_m2`, `participacao_interna_pct`, `valor_interno`), django-simple-history. ✅
 - **Fase 3 — Contratos (CON):** `Contrato` + `Garantia`, histórico de auditoria, status calculado, custom actions (reajuste IGPM/IPCA, recibo PDF).
 - **Fase 4 — Documentos (DOC):** configurar `django-storages` com Cloudflare R2 (instalar lib, variáveis `AWS_*` no `.env`/Railway, `DEFAULT_FILE_STORAGE`), `Documento` com `GenericForeignKey`, upload R2, URLs assinadas, inlines no admin das entidades relacionadas.
 - **Fase 5 — Lembretes (LEM):** `Tarefa` com GenericFK, 6 management commands, Railway crons, e-mail SMTP simples.
