@@ -15,6 +15,16 @@ Uso interno familiar (baixo volume). Responsável mora em Toronto (UTC-5), entã
 
 Não sugerir alternativas serverless (Vercel), AWS direto, OneDrive ou banco local — já foram avaliadas e descartadas.
 
+## Deploy (Railway)
+
+O deploy é disparado automaticamente a cada `git push` para `main`. O Railway usa Nixpacks para detectar o projeto Python e instalar o `requirements.txt` na fase de build.
+
+O start command definido em `railway.json` executa três etapas em sequência:
+
+1. `collectstatic --noinput` — copia os arquivos estáticos (CSS/JS do Unfold e do admin) para `staticfiles/`, de onde o Whitenoise os serve em produção.
+2. `migrate` — aplica migrations pendentes no Neon Postgres antes de subir o servidor.
+3. `gunicorn config.wsgi --bind 0.0.0.0:$PORT` — inicia o servidor WSGI na porta dinâmica injetada pelo Railway (`$PORT`).
+
 ## Modelo operacional
 
 Híbrido: administradora local cuida do dia-a-dia. O sistema cobre a camada estratégica — patrimônio, documentos, financeiro consolidado, IR e prazos.
