@@ -67,11 +67,11 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 
 Ordem de implementação acordada (~13-20 dias com dedicação parcial):
 
-- **Fase 0 — Setup:** projeto Django + Unfold, Neon via `DATABASE_URL`, django-storages com R2, deploy inicial Railway, env vars.
+- **Fase 0 — Setup:** projeto Django + Unfold, Neon via `DATABASE_URL`, deploy inicial Railway, env vars. ✅
 - **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único, 5 `Perfil*` via OneToOne, admin com inlines + admins próprios por perfil, soft delete via `ativo`.
 - **Fase 2 — Imóveis (PAT):** `Imovel` + through `ImovelProprietario`, validação `clean()` da soma de participações = 1, `@property` calculadas, django-simple-history.
 - **Fase 3 — Contratos (CON):** `Contrato` + `Garantia`, histórico de auditoria, status calculado, custom actions (reajuste IGPM/IPCA, recibo PDF).
-- **Fase 4 — Documentos (DOC):** `Documento` com `GenericForeignKey`, upload R2, URLs assinadas, inlines no admin das entidades relacionadas.
+- **Fase 4 — Documentos (DOC):** configurar `django-storages` com Cloudflare R2 (instalar lib, variáveis `AWS_*` no `.env`/Railway, `DEFAULT_FILE_STORAGE`), `Documento` com `GenericForeignKey`, upload R2, URLs assinadas, inlines no admin das entidades relacionadas.
 - **Fase 5 — Lembretes (LEM):** `Tarefa` com GenericFK, 6 management commands, Railway crons, e-mail SMTP simples.
 - **Fase 6 — Relatórios (REL):** custom actions — patrimonial consolidado, rendimentos por CPF (IR), DRE por imóvel.
 
