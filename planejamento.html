@@ -563,7 +563,8 @@ EMAIL_HOST_PASSWORD=...</code></pre>
       <div class="model-name">Imovel</div>
       <ul class="field-list">
         <li><strong>id</strong> <span class="pk">PK</span></li>
-        <li><strong>nome, tipo, status</strong> — TextChoices</li>
+        <li><strong>nome, tipo</strong> — TextChoices</li>
+        <li><strong>status</strong> TextChoices (DI/AL/VE/RE/IN/GT) — GT = Gerido por terceiros</li>
         <li><strong>endereco, complemento, bairro, cidade, estado, cep</strong></li>
         <li><strong>area_total, quartos, vagas</strong></li>
         <li><strong>valor_mercado, matricula</strong></li>
@@ -582,28 +583,34 @@ EMAIL_HOST_PASSWORD=...</code></pre>
       </ul>
     </div>
 
-    <h3>App: <code>contratos</code></h3>
+    <h3>App: <code>contratos</code> ✅</h3>
     <div class="model-block">
       <div class="model-name">Contrato</div>
       <ul class="field-list">
         <li><strong>imovel</strong> <span class="relation">FK → Imovel (PROTECT)</span></li>
         <li><strong>cliente</strong> <span class="relation">FK → PerfilCliente (PROTECT)</span></li>
         <li><strong>imobiliaria</strong> <span class="relation">FK → PerfilImobiliaria (PROTECT, null)</span></li>
-        <li><strong>vigencia_inicio, vigencia_fim</strong></li>
+        <li><strong>data_inicio</strong> Date</li>
+        <li><strong>vigencia</strong> IntegerField — duração em meses</li>
+        <li><strong>renovacao_automatica</strong> BooleanField</li>
+        <li><strong>quant_renov_automaticas</strong> PositiveSmallIntegerField</li>
         <li><strong>valor_aluguel</strong> Decimal</li>
-        <li><strong>indice_reajuste</strong> TextChoices (IGPM, IPCA)</li>
-        <li><strong>data_reajuste</strong> Date</li>
-        <li><strong>status</strong> TextChoices (vigente, vencendo, encerrado)</li>
+        <li><strong>indice_reajuste</strong> TextChoices (IGPM, IPCA, INCC, FIXO, OUTRO)</li>
+        <li><strong>dia_vencimento</strong> PositiveSmallIntegerField (1–28)</li>
+        <li><strong>rescindido_em</strong> Date (null)</li>
+        <li>@property <strong>data_fim</strong> — data_inicio + vigencia × (1 + renovações) via <code>add_months</code></li>
+        <li>@property <strong>status</strong> — Futuro / Ativo / Renovado / Vencido / Rescindido</li>
+        <li>@property <strong>historico_precos</strong> — lista de períodos com valor e datas, via HistoricalRecords</li>
         <li>+ HistoricalRecords (django-simple-history)</li>
       </ul>
     </div>
     <div class="model-block">
       <div class="model-name">Garantia</div>
       <ul class="field-list">
-        <li><strong>contrato</strong> <span class="relation">OneToOne → Contrato</span></li>
-        <li><strong>tipo</strong> TextChoices (caucao, fianca, seguro)</li>
-        <li><strong>fiador</strong> <span class="relation">FK → PerfilFiador (null, PROTECT)</span></li>
-        <li><strong>vencimento</strong> Date</li>
+        <li><strong>contrato</strong> <span class="relation">FK → Contrato (CASCADE)</span></li>
+        <li><strong>tipo</strong> TextChoices (FIADOR, DEPOSITO, SEGURO, SEM_GARANTIA)</li>
+        <li><strong>fiador</strong> <span class="relation">FK → PerfilFiador (null, PROTECT)</span> — obrigatório se tipo=FIADOR</li>
+        <li><strong>valor</strong> Decimal (null) — depósito, seguro ou título</li>
       </ul>
     </div>
 
@@ -666,15 +673,21 @@ EMAIL_HOST_PASSWORD=...</code></pre>
    │         │          │                 │
    │       ┌─┴────────────────────────────┴──┐
    │       │           Contrato              │
-   │       │ • vigencia, valor, indice       │
-   │       │ • status, data_reajuste         │
+   │       │ • data_inicio, vigencia(meses)  │
+   │       │ • renovacao_automatica          │
+   │       │ • valor_aluguel, indice         │
+   │       │ • dia_vencimento, rescindido_em │
+   │       │ @property data_fim, status      │
+   │       │ @property historico_precos      │
    │       │ + HistoricalRecords             │
    │       └─────────────────┬───────────────┘
    │                         │ 1
    │                         │
    │           ┌─────────────┴──────────────┐
    │           │         Garantia           │
-   │           │ • tipo, vencimento         │
+   │           │ • tipo (FIADOR/DEPOSITO/   │
+   │           │   SEGURO/SEM_GARANTIA)     │
+   │           │ • valor (null)             │
    │           └────────────────────────────┘
    │
    │ N (through ImovelProprietario)
@@ -686,9 +699,10 @@ EMAIL_HOST_PASSWORD=...</code></pre>
                   ▼
          ┌──────────────────────────┐
          │         Imovel           │
-         │ • matricula, area, IPTU  │
-         │ • valor_venal, mercado   │
-         │ • situacao               │
+         │ • matricula, area_total  │
+         │ • valor_mercado          │
+         │ • status: DI/AL/VE/RE/   │
+         │   IN/GT(terceiros)       │
          │ + HistoricalRecords      │
          └──────────────────────────┘
                   ▲ 1
@@ -718,7 +732,7 @@ EMAIL_HOST_PASSWORD=...</code></pre>
         <tr><td>Contrato → Imovel</td><td>N : 1</td><td>PROTECT</td></tr>
         <tr><td>Contrato → PerfilCliente</td><td>N : 1</td><td>PROTECT</td></tr>
         <tr><td>Contrato → PerfilImobiliaria</td><td>N : 0..1</td><td>PROTECT</td></tr>
-        <tr><td>Contrato ↔ Garantia</td><td>1 : 0..1</td><td>CASCADE</td></tr>
+        <tr><td>Contrato ↔ Garantia</td><td>1 : 0..N</td><td>CASCADE</td></tr>
         <tr><td>Garantia → PerfilFiador</td><td>N : 0..1</td><td>PROTECT</td></tr>
         <tr><td>Documento → *</td><td>N : 1 (GenericForeignKey)</td><td>n/a (Generic)</td></tr>
       </tbody>
@@ -745,13 +759,13 @@ EMAIL_HOST_PASSWORD=...</code></pre>
           <td>LEM-01 · Vencimento de contrato</td>
           <td><code>verificar_contratos_vencendo</code></td>
           <td>Diário 09:00 BRT</td>
-          <td><code>vigencia_fim - today() == 60d</code></td>
+          <td><code>data_fim (property) - today() == 60d</code></td></tr>
         </tr>
         <tr>
           <td>LEM-02 · Reajuste anual</td>
           <td><code>verificar_reajustes</code></td>
           <td>Diário 09:00 BRT</td>
-          <td><code>data_reajuste - today() == 30d</code></td>
+          <td><code>data_inicio + 12 meses - today() == 30d</code></td>
         </tr>
         <tr>
           <td>LEM-03 · IPTU</td>
@@ -790,12 +804,13 @@ from core.models import Tarefa
 class Command(BaseCommand):
     def handle(self, *args, **opts):
         alvo = date.today() + timedelta(days=60)
-        for c in Contrato.objects.filter(vigencia_fim=alvo, status="vigente"):
-            Tarefa.objects.get_or_create(
-                content_object=c,
-                tipo="renovacao",
-                defaults={"titulo": f"Renovar contrato {c}", "vencimento": c.vigencia_fim}
-            )</code></pre>
+        for c in Contrato.objects.filter(rescindido_em__isnull=True):
+            if c.data_fim == alvo:
+                Tarefa.objects.get_or_create(
+                    content_object=c,
+                    tipo="renovacao",
+                    defaults={"titulo": f"Renovar contrato {c}", "vencimento": c.data_fim}
+                )</code></pre>
 
     <h3>Notificação</h3>
     <p>MVP: <code>Tarefa</code> aparece no admin Django + e-mail simples via SMTP. Sem push, sem WhatsApp na primeira versão.</p>
@@ -834,11 +849,12 @@ class Command(BaseCommand):
 
     <h3>Fase 3 — Contratos (CON) (3-4 dias)</h3>
     <ul class="checklist">
-      <li>Models <code>Contrato</code> + <code>Garantia</code></li>
-      <li>Histórico de auditoria</li>
-      <li>Status calculado (vigente/vencendo/encerrado)</li>
-      <li>Custom action: calcular reajuste IGPM/IPCA</li>
-      <li>Custom action: gerar recibo PDF (ReportLab ou WeasyPrint)</li>
+      <li class="done">Models <code>Contrato</code> + <code>Garantia</code></li>
+      <li class="done">Histórico de auditoria (django-simple-history)</li>
+      <li class="done">Status calculado: Futuro / Ativo / Renovado / Vencido / Rescindido</li>
+      <li class="done">Admin com inline de garantias, displays formatados e histórico de preços</li>
+      <li>Custom action: calcular reajuste IGPM/IPCA → <strong>backlog</strong></li>
+      <li>Custom action: gerar recibo PDF → <strong>backlog</strong></li>
     </ul>
 
     <h3>Fase 4 — Documentos (DOC) (1-2 dias)</h3>

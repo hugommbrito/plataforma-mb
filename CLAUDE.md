@@ -60,6 +60,7 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 ### Utilitários e padrões de exibição
 
 - **Formatação de moeda:** `formatar_moeda(valor)` em `config/utils.py` — usar em todos os `@admin.display` que exibem R$. Retorna `'—'` para `None`.
+- **Adição de meses a datas:** `add_months(d, months)` em `config/utils.py` — soma meses a uma `date` ajustando o dia ao último do mês quando necessário (ex: 31/jan + 1 mês → 28/fev). Usar sempre que precisar calcular prazo em meses.
 - **Widgets customizados:** sempre subclassear `UnfoldAdminTextInputWidget` (não `TextInput`) para manter a estilização Tailwind do Unfold.
 - **Datalist dinâmico:** campos com sugestões baseadas em dados existentes usam `<datalist>` + JS inline (ver `imoveis/widgets.py` — `EstadoWidget` com UFs estáticos, `CidadeWidget` filtrado por estado via JSON injetado no DOM).
 - **Totais na listagem:** usar `list_after_template` + override de `changelist_view` para injetar totais no contexto (ver `ImovelAdmin`).
@@ -70,7 +71,10 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 - **Participação interna** calculada via `@property participacao_interna_pct` (soma dos proprietários com `interno=True`) e `@property valor_interno` (`valor_mercado × participacao_interna_pct`).
 - **Campos calculados** (% do valor de mercado, R$/m², valor líquido estimado) sempre como `@property`. Nunca persistir.
 - **Enums fixos** via `TextChoices`. Não criar models separadas para status/tipo/categoria.
-- **Histórico de alterações** em `Contrato`, `Imovel` e `Pagamento` via `django-simple-history` ou `django-auditlog`.
+- **Histórico de alterações** em `Contrato`, `Imovel` e `Pagamento` via `django-simple-history`.
+- **Contrato:** vigência em meses (`vigencia` IntegerField) + `renovacao_automatica` + `quant_renov_automaticas`. `data_fim` e `status` como `@property` (nunca persistidos). `status` retorna: Futuro / Ativo / Renovado / Vencido / Rescindido. `historico_precos` como `@property` detecta mudanças de `valor_aluguel` via `HistoricalRecords`. FKs: `imovel → Imovel`, `cliente → PerfilCliente`, `imobiliaria → PerfilImobiliaria` (opcional).
+- **Garantia:** `CASCADE` em relação ao contrato (garantia não existe sem contrato). Tipos: FIADOR / DEPOSITO / SEGURO / SEM_GARANTIA. FK `fiador → PerfilFiador` obrigatória apenas quando tipo = FIADOR (validado em `clean()`).
+- **Imovel.Status** inclui `GESTAO_TERCEIRO` ('GT') para imóveis administrados por terceiros sem contrato direto.
 - **Documentos** via model genérica com `GenericForeignKey` — não uma model de documento por entidade relacionada.
 
 ## Roadmap MVP
@@ -80,7 +84,7 @@ Ordem de implementação acordada (~13-20 dias com dedicação parcial):
 - **Fase 0 — Setup:** projeto Django + Unfold, Neon via `DATABASE_URL`, deploy inicial Railway, env vars. ✅
 - **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único (dígitos), 4 `Perfil*` MVP via OneToOne, máscara CPF/CNPJ no widget, admin com inlines + admins próprios por perfil, soft delete via `ativo`. ✅
 - **Fase 2 — Imóveis (PAT):** `Imovel` + through `ImovelProprietario`, `clean()` valida soma ≤ 1, `@property` calculadas (`valor_por_m2`, `participacao_interna_pct`, `valor_interno`), django-simple-history. ✅
-- **Fase 3 — Contratos (CON):** `Contrato` + `Garantia`, histórico de auditoria, status calculado, custom actions (reajuste IGPM/IPCA, recibo PDF).
+- **Fase 3 — Contratos (CON):** `Contrato` + `Garantia`, histórico de auditoria, status calculado, custom actions (reajuste IGPM/IPCA, recibo PDF). ✅ (reajuste e recibo PDF → backlog)
 - **Fase 4 — Documentos (DOC):** configurar `django-storages` com Cloudflare R2 (instalar lib, variáveis `AWS_*` no `.env`/Railway, `DEFAULT_FILE_STORAGE`), `Documento` com `GenericForeignKey`, upload R2, URLs assinadas, inlines no admin das entidades relacionadas.
 - **Fase 5 — Lembretes (LEM):** `Tarefa` com GenericFK, 6 management commands, Railway crons, e-mail SMTP simples.
 - **Fase 6 — Relatórios (REL):** custom actions — patrimonial consolidado, rendimentos por CPF (IR), DRE por imóvel.
