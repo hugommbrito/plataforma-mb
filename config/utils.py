@@ -1,3 +1,16 @@
+from calendar import monthrange
+from datetime import date
+
+
+def add_months(d: date, months: int) -> date:
+    """Soma `months` meses a uma data, ajustando o dia ao último do mês se necessário."""
+    total = d.month - 1 + months
+    year = d.year + total // 12
+    month = total % 12 + 1
+    day = min(d.day, monthrange(year, month)[1])
+    return date(year, month, day)
+
+
 def formatar_moeda(valor):
     """Formata um valor Decimal/float como moeda brasileira. Ex: 1234.5 → 'R$ 1.234,50'"""
     if valor is None:

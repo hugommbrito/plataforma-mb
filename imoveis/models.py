@@ -23,6 +23,7 @@ class Imovel(models.Model):
         VENDA = 'VE', 'À Venda'
         REFORMA = 'RE', 'Em Reforma'
         INATIVO = 'IN', 'Inativo'
+        GESTAO_TERCEIRO = 'GT', 'Gerido por terceiros'
 
     # Identificação
     nome = models.CharField(max_length=200, help_text='Nome de referência interno (ex: "Apto Centro")')

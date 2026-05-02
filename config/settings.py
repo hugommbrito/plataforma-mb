@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'simple_history',
     'pessoas',
     'imoveis',
+    'contratos',
 ]
 
 MIDDLEWARE = [
