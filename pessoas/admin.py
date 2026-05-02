@@ -15,6 +15,7 @@ class PerfilProprietarioInline(StackedInline):
     model = PerfilProprietario
     extra = 0
     can_delete = False
+    fields = ['interno']
 
 
 class PerfilClienteInline(StackedInline):
@@ -82,7 +83,8 @@ class PessoaAdmin(ModelAdmin):
 
 @admin.register(PerfilProprietario)
 class PerfilProprietarioAdmin(ModelAdmin):
-    list_display = ['pessoa']
+    list_display = ['pessoa', 'interno']
+    list_filter = ['interno']
     search_fields = ['pessoa__nome', 'pessoa__cpf_cnpj']
     autocomplete_fields = ['pessoa']
 

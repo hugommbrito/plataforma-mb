@@ -14,6 +14,7 @@ class Pessoa(models.Model):
     cpf_cnpj = models.CharField(
         max_length=14,
         unique=True,
+        blank=True,
         validators=[RegexValidator(r'^\d{11}$|^\d{14}$', 'Informe 11 dígitos (CPF) ou 14 dígitos (CNPJ).')],
     )
     email = models.EmailField(blank=True)
@@ -30,13 +31,18 @@ class Pessoa(models.Model):
         ordering = ['nome']
 
     def __str__(self):
-        return f'{self.apelido} ({self.cpf_cnpj})'
+        return f'{self.apelido} ({self.cpf_cnpj})' if self.cpf_cnpj else self.apelido
 
 
 # Usado em: ImovelProprietario (participação no imóvel), recibo de aluguel, relatório de IR, DRE por imóvel.
 class PerfilProprietario(models.Model):
     pessoa = models.OneToOneField(
         Pessoa, on_delete=models.PROTECT, related_name='perfil_proprietario'
+    )
+    # Indica se é proprietário da família (holding). Usado para calcular participação interna por imóvel.
+    interno = models.BooleanField(
+        default=False,
+        help_text='Marque se este proprietário faz parte da família/holding.'
     )
 
     class Meta:

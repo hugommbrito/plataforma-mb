@@ -19,7 +19,7 @@ class CpfCnpjField(forms.CharField):
 
 
 class PessoaForm(forms.ModelForm):
-    cpf_cnpj = CpfCnpjField(label='CPF / CNPJ')
+    cpf_cnpj = CpfCnpjField(label='CPF / CNPJ', required=False)
 
     class Meta:
         from .models import Pessoa

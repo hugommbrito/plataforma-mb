@@ -1,7 +1,7 @@
-from django.forms import TextInput
+from unfold.widgets import UnfoldAdminTextInputWidget
 
 
-class CpfCnpjWidget(TextInput):
+class CpfCnpjWidget(UnfoldAdminTextInputWidget):
     class Media:
         js = ('pessoas/js/cpf_cnpj_mask.js',)
 
