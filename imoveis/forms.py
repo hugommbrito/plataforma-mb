@@ -1,13 +1,17 @@
 from django import forms
 
+from config.dynamic_form import DynamicSchemaFormMixin
 from .models import Imovel
 from .widgets import CidadeWidget, EstadoWidget
 
 
-class ImovelForm(forms.ModelForm):
+class ImovelForm(DynamicSchemaFormMixin, forms.ModelForm):
+    schema = Imovel.CARACTERISTICAS_SCHEMA
+    metadados_field = 'caracteristicas'
+
     estado = forms.CharField(widget=EstadoWidget, max_length=2)
     cidade = forms.CharField(widget=CidadeWidget, max_length=100)
 
     class Meta:
         model = Imovel
-        fields = '__all__'
+        exclude = ['caracteristicas']

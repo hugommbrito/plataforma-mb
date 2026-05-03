@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -17,6 +18,54 @@ class Imovel(models.Model):
         TERRENO = 'TE', 'Terreno'
         OUTRO = 'OU', 'Outro'
 
+    CARACTERISTICAS_SCHEMA = {
+        Tipo.APARTAMENTO: [
+            {'campo': 'andar',             'label': 'Andar',                  'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'numero_unidade',    'label': 'Número da Unidade',      'tipo': 'texto',   'obrigatorio': False},
+            {'campo': 'quartos',           'label': 'Quartos',                'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'banheiros',         'label': 'Banheiros',              'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'vagas',             'label': 'Vagas de Garagem',       'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'condominio_mensal', 'label': 'Condomínio Mensal (R$)', 'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'tem_varanda',        'label': 'Possui Varanda',          'tipo': 'booleano','obrigatorio': False},
+        ],
+        Tipo.CASA: [
+            {'campo': 'quartos',           'label': 'Quartos',                'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'banheiros',         'label': 'Banheiros',              'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'area_construida',   'label': 'Área Construída (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'area_terreno',      'label': 'Área do Terreno (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'pavimentos',        'label': 'Pavimentos',             'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'vagas',             'label': 'Vagas de Garagem',       'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'tem_piscina',       'label': 'Possui Piscina',         'tipo': 'booleano','obrigatorio': False},
+            {'campo': 'tem_edicula',       'label': 'Possui Edícula',         'tipo': 'booleano','obrigatorio': False},
+        ],
+        Tipo.SALA_COMERCIAL: [
+            {'campo': 'andar',             'label': 'Andar',                  'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'numero_unidade',    'label': 'Número da Unidade',      'tipo': 'texto',   'obrigatorio': False},
+            {'campo': 'condominio_mensal', 'label': 'Condomínio Mensal (R$)', 'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'vagas_cobertas',    'label': 'Vagas Cobertas',         'tipo': 'numero',  'obrigatorio': False},
+        ],
+        Tipo.IMOVEL_COMERCIAL: [
+            {'campo': 'area_construida',   'label': 'Área Construída (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'area_terreno',      'label': 'Área do Terreno (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'pe_direito',        'label': 'Pé Direito (m)',         'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'banheiros',         'label': 'Banheiros',              'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'vagas_proprias',    'label': 'Vagas Próprias',         'tipo': 'numero',  'obrigatorio': False},
+        ],
+        Tipo.GALPAO: [
+            {'campo': 'area_construida',   'label': 'Área Construída (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'area_terreno',      'label': 'Área do Terreno (m²)',   'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'area_escritorio',   'label': 'Área de Escritório (m²)','tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'docas',             'label': 'Docas',                  'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'pe_direito',        'label': 'Pé Direito (m)',         'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'piso_tipo',         'label': 'Tipo de Piso',           'tipo': 'texto',   'obrigatorio': False},
+        ],
+        Tipo.TERRENO: [
+            {'campo': 'frente',           'label': 'Frente (m)',            'tipo': 'decimal', 'obrigatorio': False},
+            {'campo': 'zoneamento',        'label': 'Zoneamento',             'tipo': 'texto',   'obrigatorio': False},
+            {'campo': 'topografia',        'label': 'Topografia',             'tipo': 'texto',   'obrigatorio': False},
+        ],
+    }
+
     class Status(models.TextChoices):
         DISPONIVEL = 'DI', 'Disponível'
         ALUGADO = 'AL', 'Alugado'
@@ -29,6 +78,9 @@ class Imovel(models.Model):
     nome = models.CharField(max_length=200, help_text='Nome de referência interno (ex: "Apto Centro")')
     tipo = models.CharField(max_length=2, choices=Tipo.choices)
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.DISPONIVEL)
+    area = models.DecimalField(
+        'área (m²)', max_digits=10, decimal_places=2, null=True, blank=True
+    )
 
     # Localização
     endereco = models.CharField('endereço', max_length=300, blank=True)
@@ -39,22 +91,29 @@ class Imovel(models.Model):
     cep = models.CharField('CEP', max_length=9, blank=True)
 
     # Características
-    area_total = models.DecimalField(
-        'área total (m²)', max_digits=10, decimal_places=2, null=True, blank=True
+    caracteristicas = models.JSONField(
+        default=dict, blank=True,
+        help_text='Campos específicos do tipo de imóvel.'
     )
-    quartos = models.PositiveSmallIntegerField(null=True, blank=True)
-    vagas = models.PositiveSmallIntegerField('vagas de garagem', null=True, blank=True)
 
     # Financeiro
     valor_mercado = models.DecimalField(
         'valor de mercado (R$)', max_digits=14, decimal_places=2, null=True, blank=True
     )
-    matricula = models.CharField('matrícula do imóvel', max_length=50, blank=True)
+
+    # Dados do Município
+    matricula_municipio = models.CharField('Matrícula do imóvel na prefeitura', max_length=50, blank=True)
+    inscricao_municipal = models.CharField('Inscrição Municipal', max_length=50, blank=True)
+
+    # Dados do Cartório
+    matricula_cartorio = models.CharField('Matrícula do imóvel no cartorio', max_length=50, blank=True)
+
 
     observacoes = models.TextField('observações', blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
+    documentos = GenericRelation('documentos.Documento')
     history = HistoricalRecords()
 
     class Meta:
