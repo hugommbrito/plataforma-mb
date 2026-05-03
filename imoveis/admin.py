@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
+from unfold.utils import display_for_label
+
 from config.dynamic_form import DynamicSchemaAdminMixin, build_conditional_fields, build_meta_field_names
 from config.utils import formatar_moeda, formatar_percentual
 from documentos.admin import ImovelDocumentoInline
@@ -25,16 +27,19 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     form = ImovelForm
     conditional_fields = _CONDITIONAL_FIELDS
     list_after_template = 'admin/imoveis/imovel/change_list_after.html'
-    list_display =['nome', 'tipo', 'status', 'cidade', 'estado', 'valor_mercado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display']
+    list_display = ['nome', 'tipo', 'status', 'cidade', 'estado', 'valor_mercado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'registro_regularizado_display']
     list_filter = ['tipo', 'status', 'estado']
-    search_fields = ['nome', 'endereco', 'cidade', 'matricula']
+    search_fields = ['nome', 'endereco', 'cidade', 'matricula_cartorio']
+    autocomplete_fields = ['titular_registro']
     inlines = [ImovelProprietarioInline, ImovelDocumentoInline]
-    readonly_fields = ['valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'criado_em', 'atualizado_em']
+    readonly_fields = ['registro_regularizado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'criado_em', 'atualizado_em']
     fieldsets = [
-        ('Identificação', {'fields': ['nome', 'tipo', 'status', 'matricula']}),
-        ('Características', {'fields': ['area_total']}),
+        ('Identificação', {'fields': ['nome', 'tipo', 'status']}),
+        ('Características', {'fields': ['area']}),
         ('Características específicas', {'fields': _META_FIELD_NAMES}),
         ('Localização', {'fields': ['endereco', 'complemento', 'bairro', 'estado', 'cidade', 'cep']}),
+        ('Cartório', {'fields': ['matricula_cartorio', 'titular_registro', 'registro_regularizado_display']}),
+        ('Município', {'fields': ['matricula_municipio', 'inscricao_municipal']}),
         ('Patrimônio Financeiro', {'fields': ['valor_mercado', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display']}),
         ('Observações', {'fields': ['observacoes'], 'classes': ['collapse']}),
         ('Auditoria', {'fields': ['criado_em', 'atualizado_em'], 'classes': ['collapse']}),
@@ -70,3 +75,12 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     @admin.display(description='Valor interno (R$)')
     def valor_interno_display(self, obj):
         return formatar_moeda(obj.valor_interno)
+
+    @admin.display(description='Registro')
+    def registro_regularizado_display(self, obj):
+        status = obj.registro_regularizado
+        if status is None:
+            return '—'
+        texto = 'Regularizado' if status else 'Pendente'
+        tipo = 'success' if status else 'danger'
+        return display_for_label(texto, '—', {texto: tipo})

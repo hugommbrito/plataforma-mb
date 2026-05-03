@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from pessoas.models import PerfilProprietario
+from pessoas.models import PerfilProprietario, Pessoa
 
 
 class Imovel(models.Model):
@@ -107,6 +107,14 @@ class Imovel(models.Model):
 
     # Dados do Cartório
     matricula_cartorio = models.CharField('Matrícula do imóvel no cartorio', max_length=50, blank=True)
+    titular_registro = models.ForeignKey(
+        Pessoa,
+        on_delete=models.PROTECT,
+        null=True, blank=True,
+        related_name='imoveis_como_titular',
+        verbose_name='titular do registro',
+        help_text='Pessoa em cujo nome a matrícula está lavrada no cartório.',
+    )
 
 
     observacoes = models.TextField('observações', blank=True)
@@ -126,8 +134,8 @@ class Imovel(models.Model):
 
     @property
     def valor_por_m2(self):
-        if self.valor_mercado and self.area_total:
-            return round(self.valor_mercado / self.area_total, 2)
+        if self.valor_mercado and self.area:
+            return round(self.valor_mercado / self.area, 2)
         return None
 
     @property
@@ -145,6 +153,21 @@ class Imovel(models.Model):
         if self.valor_mercado:
             return round(self.valor_mercado * self.participacao_interna_pct, 2)
         return None
+
+    @property
+    def registro_regularizado(self):
+        """
+        None  → titular não informado.
+        True  → titular consta como um dos proprietários do imóvel.
+        False → titular não está entre os proprietários (registro pendente de regularização).
+        """
+        if not self.titular_registro_id:
+            return None
+        ids_proprietarios = {
+            ip.proprietario.pessoa_id
+            for ip in self.imovelproprietario_set.select_related('proprietario')
+        }
+        return self.titular_registro_id in ids_proprietarios
 
     @property
     def proprietarios_lista(self):
