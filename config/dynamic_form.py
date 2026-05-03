@@ -34,6 +34,7 @@ from unfold.widgets import (
     UnfoldAdminIntegerFieldWidget,
     UnfoldAdminSingleDateWidget,
     UnfoldAdminTextInputWidget,
+    UnfoldAdminNullBooleanSelectWidget
 )
 
 
@@ -86,7 +87,7 @@ def make_schema_form_field(info):
     if tipo == 'data':
         return forms.DateField(**kwargs, widget=UnfoldAdminSingleDateWidget())
     if tipo == 'booleano':
-        return forms.BooleanField(label=label, required=False)
+        return forms.NullBooleanField(label=label, required=False, widget=UnfoldAdminNullBooleanSelectWidget())
     return forms.CharField(**kwargs, widget=UnfoldAdminTextInputWidget())
 
 
