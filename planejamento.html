@@ -566,7 +566,8 @@ EMAIL_HOST_PASSWORD=...</code></pre>
         <li><strong>nome, tipo</strong> — TextChoices</li>
         <li><strong>status</strong> TextChoices (DI/AL/VE/RE/IN/GT) — GT = Gerido por terceiros</li>
         <li><strong>endereco, complemento, bairro, cidade, estado, cep</strong></li>
-        <li><strong>area_total, quartos, vagas</strong></li>
+        <li><strong>area_total</strong></li>
+        <li><strong>caracteristicas</strong> JSONField — campos específicos por tipo via <code>CARACTERISTICAS_SCHEMA</code> (quartos e vagas migrados para o schema)</li>
         <li><strong>valor_mercado, matricula</strong></li>
         <li>@property <strong>valor_por_m2</strong> — valor_mercado / area_total</li>
         <li>@property <strong>participacao_interna_pct</strong> — soma participações com interno=True</li>
@@ -857,12 +858,15 @@ class Command(BaseCommand):
       <li>Custom action: gerar recibo PDF → <strong>backlog</strong></li>
     </ul>
 
-    <h3>Fase 4 — Documentos (DOC) (1-2 dias)</h3>
+    <h3>Fase 4 — Documentos (DOC) (1-2 dias) ✅</h3>
     <ul class="checklist">
-      <li>Model <code>Documento</code> com <code>GenericForeignKey</code></li>
-      <li>Upload para R2 funcionando</li>
-      <li>URLs assinadas para download</li>
-      <li>Inline no admin de imóvel/contrato/pessoa</li>
+      <li class="done">Model <code>Documento</code> com <code>GenericForeignKey</code> e <code>METADADOS_SCHEMA</code> por tipo</li>
+      <li class="done">Upload para R2 funcionando (django-storages[boto3], configuração condicional)</li>
+      <li class="done">URLs assinadas para download</li>
+      <li class="done">Inline no admin de imóvel/contrato/pessoa e todos os perfis, com tipos filtrados por entidade</li>
+      <li class="done">Admin com campos dinâmicos por tipo via Alpine.js (<code>conditional_fields</code> do Unfold)</li>
+      <li class="done"><code>DynamicSchemaFormMixin</code> + <code>DynamicSchemaAdminMixin</code> em <code>config/dynamic_form.py</code> — reutilizável em qualquer app</li>
+      <li class="done"><code>Imovel.CARACTERISTICAS_SCHEMA</code> + campo <code>caracteristicas</code> JSONField; remoção de <code>quartos</code> e <code>vagas</code> como campos fixos</li>
     </ul>
 
     <h3>Fase 5 — Lembretes (LEM) (2-3 dias)</h3>
