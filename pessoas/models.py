@@ -1,5 +1,6 @@
-from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class Pessoa(models.Model):
@@ -22,6 +23,7 @@ class Pessoa(models.Model):
     endereco = models.CharField('endereço', max_length=300, blank=True)
     observacoes = models.TextField('observações', blank=True)
     ativo = models.BooleanField(default=True)
+    documentos = GenericRelation('documentos.Documento')
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
@@ -44,6 +46,7 @@ class PerfilProprietario(models.Model):
         default=False,
         help_text='Marque se este proprietário faz parte da família/holding.'
     )
+    documentos = GenericRelation('documentos.Documento')
 
     class Meta:
         verbose_name = 'perfil proprietário'
@@ -63,6 +66,7 @@ class PerfilCliente(models.Model):
         max_digits=12, decimal_places=2, null=True, blank=True
     )
     observacoes = models.TextField('observações', blank=True)
+    documentos = GenericRelation('documentos.Documento')
 
     class Meta:
         verbose_name = 'perfil cliente (inquilino)'
@@ -80,6 +84,7 @@ class PerfilImobiliaria(models.Model):
     creci = models.CharField('CRECI', max_length=30, blank=True)
     contato_responsavel = models.CharField('contato responsável', max_length=200, blank=True)
     observacoes = models.TextField('observações', blank=True)
+    documentos = GenericRelation('documentos.Documento')
 
     class Meta:
         verbose_name = 'perfil imobiliária'
@@ -99,6 +104,7 @@ class PerfilFiador(models.Model):
         max_digits=12, decimal_places=2, null=True, blank=True
     )
     observacoes = models.TextField('observações', blank=True)
+    documentos = GenericRelation('documentos.Documento')
 
     class Meta:
         verbose_name = 'perfil fiador'

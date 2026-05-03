@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'unfold',
     'unfold.contrib.filters',
     'unfold.contrib.forms',
+    'unfold.contrib.inlines',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
     'pessoas',
     'imoveis',
     'contratos',
+    'documentos',
 ]
 
 MIDDLEWARE = [
@@ -130,6 +132,29 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Cloudflare R2 (django-storages via S3Boto3)
+_R2_CONFIGURED = all([
+    env('AWS_ACCESS_KEY_ID', default=None),
+    env('AWS_SECRET_ACCESS_KEY', default=None),
+    env('AWS_STORAGE_BUCKET_NAME', default=None),
+    env('AWS_S3_ENDPOINT_URL', default=None),
+])
+
+if _R2_CONFIGURED:
+    AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = env('AWS_S3_ENDPOINT_URL')
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_DEFAULT_ACL = 'private'
+    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_EXPIRE = 3600  # URLs assinadas expiram em 1h
+
+    STORAGES = {
+        'default': {'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage'},
+        'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

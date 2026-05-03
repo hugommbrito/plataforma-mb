@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -42,6 +43,7 @@ class Contrato(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
+    documentos = GenericRelation('documentos.Documento')
     history = HistoricalRecords()
 
     class Meta:

@@ -1,6 +1,13 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, StackedInline
 
+from documentos.admin import (
+    PessoaDocumentoInline,
+    PerfilProprietarioDocumentoInline,
+    PerfilClienteDocumentoInline,
+    PerfilImobiliariaDocumentoInline,
+    PerfilFiadorDocumentoInline,
+)
 from .forms import PessoaForm
 from .models import (
     Pessoa,
@@ -51,6 +58,7 @@ class PessoaAdmin(ModelAdmin):
         PerfilClienteInline,
         PerfilImobiliariaInline,
         PerfilFiadorInline,
+        PessoaDocumentoInline,
     ]
     fieldsets = [
         ('Identificação', {'fields': ['tipo', 'nome', 'apelido', 'cpf_cnpj', 'ativo']}),
@@ -87,6 +95,7 @@ class PerfilProprietarioAdmin(ModelAdmin):
     list_filter = ['interno']
     search_fields = ['pessoa__nome', 'pessoa__cpf_cnpj']
     autocomplete_fields = ['pessoa']
+    inlines = [PerfilProprietarioDocumentoInline]
 
 
 @admin.register(PerfilCliente)
@@ -94,6 +103,7 @@ class PerfilClienteAdmin(ModelAdmin):
     list_display = ['pessoa', 'profissao', 'renda_mensal']
     search_fields = ['pessoa__nome', 'pessoa__cpf_cnpj']
     autocomplete_fields = ['pessoa']
+    inlines = [PerfilClienteDocumentoInline]
 
 
 @admin.register(PerfilImobiliaria)
@@ -101,6 +111,7 @@ class PerfilImobiliariaAdmin(ModelAdmin):
     list_display = ['pessoa', 'creci', 'contato_responsavel']
     search_fields = ['pessoa__nome', 'pessoa__cpf_cnpj']
     autocomplete_fields = ['pessoa']
+    inlines = [PerfilImobiliariaDocumentoInline]
 
 
 @admin.register(PerfilFiador)
@@ -108,3 +119,4 @@ class PerfilFiadorAdmin(ModelAdmin):
     list_display = ['pessoa', 'profissao', 'renda_mensal']
     search_fields = ['pessoa__nome', 'pessoa__cpf_cnpj']
     autocomplete_fields = ['pessoa']
+    inlines = [PerfilFiadorDocumentoInline]

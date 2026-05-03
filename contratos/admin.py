@@ -3,6 +3,7 @@ from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
 
 from config.utils import formatar_moeda
+from documentos.admin import ContratoDocumentoInline
 from .models import Contrato, Garantia
 
 
@@ -22,7 +23,7 @@ class ContratoAdmin(ModelAdmin):
     list_filter = ['indice_reajuste', 'renovacao_automatica', 'imovel__estado']
     search_fields = ['imovel__nome', 'cliente__pessoa__nome', 'cliente__pessoa__apelido']
     autocomplete_fields = ['imovel', 'cliente', 'imobiliaria']
-    inlines = [GarantiaInline]
+    inlines = [GarantiaInline, ContratoDocumentoInline]
     readonly_fields = [
         'status_display', 'data_fim_display', 'valor_aluguel_display',
         'historico_precos_display', 'criado_em', 'atualizado_em',
