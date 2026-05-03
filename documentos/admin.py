@@ -29,7 +29,7 @@ class _DocumentoInlineBase(GenericTabularInline):
 
 
 class ImovelDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.MATRICULA, T.ESCRITURA, T.IPTU, T.LICENCA, T.OUTRO]
+    tipos_permitidos = [T.MATRICULA, T.ESCRITURA, T.IPTU, T.LICENCA, T.CND_MUNICIPAL, T.FICHA_CADASTRAL, T.CERTIDAO_REGISTRO, T.CERTIDAO_INT_TEOR, T.ESCRITURA_PUBLICA, T.OUTRO]
 
 
 class ContratoDocumentoInline(_DocumentoInlineBase):

@@ -69,6 +69,11 @@ class Documento(models.Model):
         IDENTIDADE        = 'ID', 'Documento de Identidade'
         COMPROVANTE_RENDA = 'CR', 'Comprovante de Renda'
         CONSULTA_CREDITO  = 'CC', 'Consulta de Score de Crédito'
+        CND_MUNICIPAL     = 'CM', 'Município - CND'
+        FICHA_CADASTRAL   = 'FC', 'Município - Ficha Cadastral'
+        ESCRITURA_PUBLICA = 'EP', 'Cartório - Escritura Pública'
+        CERTIDAO_REGISTRO = 'CE', 'Cartório - Certidão de Registro'
+        CERTIDAO_INT_TEOR = 'CI', 'Cartório - Certidão de Inteiro Teor'
         OUTRO             = 'OU', 'Outro'
 
     # Schemas de metadados por tipo.
