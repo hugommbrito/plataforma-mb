@@ -1,7 +1,11 @@
+from datetime import date
+
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin
+from unfold.decorators import display
+from unfold.utils import display_for_label
 
 from config.dynamic_form import DynamicSchemaAdminMixin, build_conditional_fields, build_meta_field_names
 from .forms import DocumentoForm
@@ -60,15 +64,15 @@ class PerfilFiadorDocumentoInline(_DocumentoInlineBase):
 class DocumentoAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     form = DocumentoForm
     conditional_fields = _CONDITIONAL_FIELDS
-    list_display = ['tipo', 'descricao', 'entidade_display', 'vencimento', 'arquivo_link', 'criado_em']
+    list_display = ['tipo', 'descricao', 'entidade_display', 'vencimento_badge', 'arquivo_link', 'criado_em']
     list_filter = ['tipo']
     search_fields = ['descricao', 'arquivo']
-    readonly_fields = ['entidade_display', 'arquivo_link', 'criado_em']
+    readonly_fields = ['entidade_display', 'arquivo_link', 'vencimento_badge', 'criado_em']
     fieldsets = [
         ('Arquivo', {'fields': ['arquivo', 'arquivo_link', 'tipo', 'descricao']}),
         ('Campos específicos', {'fields': _META_FIELD_NAMES}),
         ('Vínculo', {'fields': ['entidade_display']}),
-        ('Prazo', {'fields': ['vencimento']}),
+        ('Prazo', {'fields': ['vencimento', 'vencimento_badge']}),
         ('Auditoria', {'fields': ['criado_em'], 'classes': ['collapse']}),
     ]
 
@@ -83,3 +87,16 @@ class DocumentoAdmin(DynamicSchemaAdminMixin, ModelAdmin):
         if obj.arquivo:
             return format_html('<a href="{}" target="_blank">Baixar</a>', obj.arquivo.url)
         return '—'
+
+    @display(description='Situação', label={
+        'Vencido': 'danger', 'A vencer': 'warning', 'OK': 'success', 'Sem data': 'default',
+    })
+    def vencimento_badge(self, obj):
+        if not obj.vencimento:
+            return 'Sem data'
+        diff = (obj.vencimento - date.today()).days
+        if diff < 0:
+            return 'Vencido'
+        if diff < 30:
+            return 'A vencer'
+        return 'OK'
