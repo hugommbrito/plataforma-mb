@@ -85,25 +85,40 @@ UNFOLD = {
                         "icon": "group",
                         "link": reverse_lazy("admin:pessoas_pessoa_changelist"),
                     },
+                    # {
+                    #     "title": _("Inquilinos"),
+                    #     "icon": "vpn_key",
+                    #     "link": reverse_lazy("admin:pessoas_perfilcliente_changelist"),
+                    # },
+                    # {
+                    #     "title": _("Proprietários"),
+                    #     "icon": "manage_accounts",
+                    #     "link": reverse_lazy("admin:pessoas_perfilproprietario_changelist"),
+                    # },
+                    # {
+                    #     "title": _("Imobiliárias"),
+                    #     "icon": "business",
+                    #     "link": reverse_lazy("admin:pessoas_perfilimobiliaria_changelist"),
+                    # },
+                    # {
+                    #     "title": _("Fiadores"),
+                    #     "icon": "shield_person",
+                    #     "link": reverse_lazy("admin:pessoas_perfilfiador_changelist"),
+                    # },
+                ],
+            },
+            {
+                "title": _("Administração"),
+                "items": [
                     {
-                        "title": _("Inquilinos"),
-                        "icon": "vpn_key",
-                        "link": reverse_lazy("admin:pessoas_perfilcliente_changelist"),
+                        "title": _("Usuários"),
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
                     },
                     {
-                        "title": _("Proprietários"),
-                        "icon": "manage_accounts",
-                        "link": reverse_lazy("admin:pessoas_perfilproprietario_changelist"),
-                    },
-                    {
-                        "title": _("Imobiliárias"),
-                        "icon": "business",
-                        "link": reverse_lazy("admin:pessoas_perfilimobiliaria_changelist"),
-                    },
-                    {
-                        "title": _("Fiadores"),
-                        "icon": "shield_person",
-                        "link": reverse_lazy("admin:pessoas_perfilfiador_changelist"),
+                        "title": _("Grupos"),
+                        "icon": "lock",
+                        "link": reverse_lazy("admin:auth_group_changelist"),
                     },
                 ],
             },
