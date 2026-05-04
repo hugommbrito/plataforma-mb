@@ -1,0 +1,8 @@
+<div class="bg-white flex flex-col grow overflow-hidden p-6 relative rounded-default shadow-xs dark:bg-base-900 border border-base-200 dark:border-base-800{% if class %} {{ class }}{% endif %}">
+  <p class="font-medium mb-3 text-xs uppercase tracking-widest text-base-400 dark:text-base-500">{{ title }}</p>
+  <p class="font-bold leading-none mb-2 text-3xl {{ value_class|default:'text-primary-600 dark:text-primary-400' }}">{{ value }}</p>
+  {% if subtitle %}
+  <p class="mt-auto pt-3 text-sm text-base-500 dark:text-base-400">{{ subtitle }}</p>
+  {% endif %}
+  <div class="absolute bottom-0 h-1 left-0 right-0 {{ accent_class|default:'bg-primary-500' }}"></div>
+</div>

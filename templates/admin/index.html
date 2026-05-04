@@ -1,0 +1,24 @@
+{% extends 'admin/base.html' %}
+{% load i18n unfold %}
+
+{% block content %}
+
+{% component "unfold/components/flex.html" with class="gap-6 mb-8" %}
+  {% component "unfold/components/kpi_card.html" with class="lg:w-1/3" title="Imóveis" value=total_imoveis subtitle=kpi_imoveis_sub %}{% endcomponent %}
+  {% component "unfold/components/kpi_card.html" with class="lg:w-1/3" title="Alugados" value=imoveis_alugados subtitle=kpi_alugados_sub value_class="text-green-600 dark:text-green-400" accent_class="bg-green-500" %}{% endcomponent %}
+  {% component "unfold/components/kpi_card.html" with class="lg:w-1/3" title="Valor Interno (holding)" value=valor_interno_total subtitle=kpi_valor_sub %}{% endcomponent %}
+{% endcomponent %}
+
+{% component "unfold/components/flex.html" with class="gap-6 mb-8" %}
+  {% trans "Imóveis por situação" as chart_status_title %}
+  {% component "unfold/components/card.html" with title=chart_status_title class="lg:w-1/2" %}
+    {% component "unfold/components/chart/doughnut.html" with data=chart_status height=280 %}{% endcomponent %}
+  {% endcomponent %}
+
+  {% trans "Imóveis por estado" as chart_estado_title %}
+  {% component "unfold/components/card.html" with title=chart_estado_title class="lg:w-1/2" %}
+    {% component "unfold/components/chart/bar.html" with data=chart_estado height=280 %}{% endcomponent %}
+  {% endcomponent %}
+{% endcomponent %}
+
+{% endblock %}
