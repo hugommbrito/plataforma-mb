@@ -31,7 +31,7 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     list_fullwidth = True
     list_after_template = 'admin/imoveis/imovel/change_list_after.html'
     list_display = ['nome', 'tipo', 'status_badge', 'cidade', 'estado', 'valor_mercado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'registro_regularizado_display']
-    list_filter = ['tipo', 'status', 'estado']
+    list_filter = ['tipo', 'status', 'estado', 'cidade']
     search_fields = ['nome', 'endereco', 'cidade', 'matricula_cartorio']
     autocomplete_fields = ['titular_registro']
     inlines = [ImovelProprietarioInline, ImovelDocumentoInline]
