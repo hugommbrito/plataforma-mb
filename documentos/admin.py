@@ -1,9 +1,8 @@
 from datetime import date
 
 from django.contrib import admin
-from django.contrib.contenttypes.admin import GenericTabularInline
 from django.utils.html import format_html
-from unfold.admin import ModelAdmin
+from unfold.admin import GenericTabularInline, ModelAdmin
 from unfold.decorators import display
 from unfold.utils import display_for_label
 
@@ -20,6 +19,7 @@ _META_FIELD_NAMES = build_meta_field_names(Documento.METADADOS_SCHEMA)
 class _DocumentoInlineBase(GenericTabularInline):
     model = Documento
     extra = 0
+    tab = True
     fields = ['tipo', 'arquivo', 'descricao', 'vencimento']
     show_full_result_count = False
     tipos_permitidos = None
