@@ -118,7 +118,7 @@ UNFOLD = {
                         "title": _("Usuários"),
                         "icon": "admin_panel_settings",
                         "link": reverse_lazy("admin:auth_user_changelist"),
-                        "permission": "config.unfold_config.permission_superuser",
+                        "permission": "config.unfold_config.permission_superuser",                      
                     },
                     {
                         "title": _("Grupos"),
