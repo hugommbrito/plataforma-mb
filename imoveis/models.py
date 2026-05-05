@@ -87,7 +87,7 @@ class Imovel(models.Model):
     complemento = models.CharField(max_length=100, blank=True)
     bairro = models.CharField(max_length=100, blank=True)
     estado = models.CharField(max_length=2)
-    cidade = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100, verbose="Município")
     cep = models.CharField('CEP', max_length=9, blank=True)
 
     # Características
