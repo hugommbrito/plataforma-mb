@@ -126,7 +126,7 @@ class Imovel(models.Model):
 
     class Meta:
         verbose_name = 'imóvel'
-        verbose_name_plural = '.imóveis'
+        verbose_name_plural = 'Imóveis'
         ordering = ['nome']
 
     def __str__(self):
