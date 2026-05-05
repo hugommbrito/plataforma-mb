@@ -1,3 +1,4 @@
 - enviar documento pela página de documento (falta relacionar com alguma entidade)
 - Adicionar os demais campos de documentos no inline das outras models
+- Adicionar os demais campos de documentos no inline das outras models
 - Adicionar um booleano em cada perfil de pessoa

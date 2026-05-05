@@ -18,32 +18,38 @@ from .models import (
 )
 
 
-class PerfilProprietarioInline(StackedInline):
-    model = PerfilProprietario
+class _PerfilReadonlyInline(StackedInline):
     extra = 0
-    can_delete = False
+    # can_delete = False
+    tab = True
+
+    # def has_add_permission(self, _request, _obj=None):
+    #     return False
+
+
+class PerfilProprietarioInline(_PerfilReadonlyInline):
+    model = PerfilProprietario
+    # readonly_fields = ['interno']
     fields = ['interno']
 
 
-class PerfilClienteInline(StackedInline):
+class PerfilClienteInline(_PerfilReadonlyInline):
     model = PerfilCliente
-    extra = 0
-    can_delete = False
     fields = ['profissao', 'renda_mensal', 'observacoes']
 
 
-class PerfilImobiliariaInline(StackedInline):
+class PerfilImobiliariaInline(_PerfilReadonlyInline):
     model = PerfilImobiliaria
-    extra = 0
-    can_delete = False
     fields = ['creci', 'contato_responsavel', 'observacoes']
 
 
-class PerfilFiadorInline(StackedInline):
+class PerfilFiadorInline(_PerfilReadonlyInline):
     model = PerfilFiador
-    extra = 0
-    can_delete = False
     fields = ['profissao', 'renda_mensal', 'observacoes']
+
+
+class _PessoaDocumentoTabInline(PessoaDocumentoInline):
+    tab = True
 
 
 @admin.register(Pessoa)
@@ -53,18 +59,26 @@ class PessoaAdmin(ModelAdmin):
     list_filter = ['tipo', 'ativo']
     search_fields = ['nome', 'apelido', 'cpf_cnpj', 'email']
     list_display_links = ['nome']
-    inlines = [
-        PerfilProprietarioInline,
-        PerfilClienteInline,
-        PerfilImobiliariaInline,
-        PerfilFiadorInline,
-        PessoaDocumentoInline,
-    ]
     fieldsets = [
         ('Identificação', {'fields': ['tipo', 'nome', 'apelido', 'cpf_cnpj', 'ativo']}),
         ('Contato', {'fields': ['email', 'telefone', 'endereco']}),
-        ('Observações', {'fields': ['observacoes'], 'classes': ['collapse']}),
+        ('Observações', {'fields': ['observacoes']}),
     ]
+
+    def get_inlines(self, _request, obj=None):
+        if obj is None:
+            return [_PessoaDocumentoTabInline]
+        inlines = []
+        if hasattr(obj, 'perfil_proprietario'):
+            inlines.append(PerfilProprietarioInline)
+        if hasattr(obj, 'perfil_cliente'):
+            inlines.append(PerfilClienteInline)
+        if hasattr(obj, 'perfil_imobiliaria'):
+            inlines.append(PerfilImobiliariaInline)
+        if hasattr(obj, 'perfil_fiador'):
+            inlines.append(PerfilFiadorInline)
+        inlines.append(_PessoaDocumentoTabInline)
+        return inlines
 
     @admin.display(description='CPF / CNPJ')
     def cpf_cnpj_formatado(self, obj):

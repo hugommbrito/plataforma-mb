@@ -13,6 +13,10 @@ def badge_contratos_vencendo(request):
     return count or None
 
 
+def permission_superuser(request):
+    return request.user.is_superuser
+
+
 def environment_callback(request):
     import os
     if os.environ.get("RAILWAY_ENVIRONMENT"):
@@ -114,11 +118,13 @@ UNFOLD = {
                         "title": _("Usuários"),
                         "icon": "admin_panel_settings",
                         "link": reverse_lazy("admin:auth_user_changelist"),
+                        "permission": "config.unfold_config.permission_superuser",                      
                     },
                     {
                         "title": _("Grupos"),
                         "icon": "lock",
                         "link": reverse_lazy("admin:auth_group_changelist"),
+                        "permission": "config.unfold_config.permission_superuser",
                     },
                 ],
             },

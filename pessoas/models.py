@@ -29,11 +29,11 @@ class Pessoa(models.Model):
 
     class Meta:
         verbose_name = 'pessoa'
-        verbose_name_plural = '.pessoas (PFs e PJs)'
+        verbose_name_plural = 'Pessoas (PFs e PJs)'
         ordering = ['nome']
 
     def __str__(self):
-        return f'{self.apelido} ({self.cpf_cnpj})' if self.cpf_cnpj else self.apelido
+        return self.apelido if self.apelido else self.nome
 
 
 # Usado em: ImovelProprietario (participação no imóvel), recibo de aluguel, relatório de IR, DRE por imóvel.

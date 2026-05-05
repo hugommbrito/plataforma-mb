@@ -16,9 +16,10 @@ _META_FIELD_NAMES = build_meta_field_names(Imovel.CARACTERISTICAS_SCHEMA)
 
 class ImovelProprietarioInline(TabularInline):
     model = ImovelProprietario
-    extra = 1
+    extra = 0
     fields = ['proprietario', 'participacao']
     autocomplete_fields = ['proprietario']
+    tab = True
 
 
 @admin.register(Imovel)

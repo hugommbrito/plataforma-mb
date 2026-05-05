@@ -12,7 +12,8 @@ from .models import Contrato, Garantia
 
 class GarantiaInline(TabularInline):
     model = Garantia
-    extra = 1
+    extra = 0
+    tab = True
     fields = ['tipo', 'fiador', 'valor', 'observacoes']
     autocomplete_fields = ['fiador']
 
