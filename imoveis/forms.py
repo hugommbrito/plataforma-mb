@@ -2,7 +2,7 @@ from django import forms
 
 from config.dynamic_form import DynamicSchemaFormMixin
 from .models import Imovel
-from .widgets import CidadeWidget, EstadoWidget
+from .widgets import EstadoWidget, MunicipioWidget
 
 
 class ImovelForm(DynamicSchemaFormMixin, forms.ModelForm):
@@ -10,7 +10,7 @@ class ImovelForm(DynamicSchemaFormMixin, forms.ModelForm):
     metadados_field = 'caracteristicas'
 
     estado = forms.CharField(widget=EstadoWidget, max_length=2)
-    cidade = forms.CharField(widget=CidadeWidget, max_length=100)
+    municipio = forms.CharField(widget=MunicipioWidget, max_length=100)
 
     class Meta:
         model = Imovel
