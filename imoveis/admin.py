@@ -47,8 +47,8 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
         ('Patrimônio Financeiro', {'classes': ['tab'], 'fields': [
             'valor_mercado', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display',
         ]}),
+        ('Observações', {'classes': ['tab'], 'fields': ['observacoes']}),
         ('Auditoria', {'classes': ['tab'], 'fields': ['criado_em', 'atualizado_em']}),
-        ('Observações', {'fields': ['observacoes']}),
     ]
 
     def changelist_view(self, request, extra_context=None):
