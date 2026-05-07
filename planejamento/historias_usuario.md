@@ -125,14 +125,14 @@
 
 | Épico | Status |
 |---|---|
-| 🏠 Patrimônio & Imóveis | ✅ MVP |
-| 📄 Contratos | ✅ MVP |
-| 👥 Pessoas & Papéis | ✅ MVP |
-| 📁 Documentos | ✅ MVP |
-| 🔔 Lembretes & Tarefas | ✅ MVP |
-| 📊 Relatórios & IR | ✅ MVP |
-| 💰 Financeiro | 🔲 Backlog |
-| 🔧 Manutenção | 🔲 Backlog |
+| 🏠 Patrimônio & Imóveis | ✅ Implementado |
+| 📄 Contratos | ✅ Implementado |
+| 👥 Pessoas & Papéis | ✅ Implementado |
+| 📁 Documentos | ✅ Implementado |
+| 🔔 Lembretes & Tarefas | 🔄 Próximo (Fase 5) |
+| 📊 Relatórios & IR | 🔄 Backlog (Fase 6) |
+| 💰 Financeiro | 🔲 Backlog pós-MVP |
+| 🔧 Manutenção | 🔲 Backlog pós-MVP |
 
 ---
 
@@ -140,12 +140,13 @@
 
 | App | Épicos cobertos | Status |
 |---|---|---|
-| `imoveis` | PAT | ✅ MVP |
-| `pessoas` | PES | ✅ MVP |
-| `contratos` | CON | ✅ MVP |
-| `documentos` | DOC | ✅ MVP |
-| `financeiro` | FIN | 🔲 Backlog |
-| `manutencao` | MAN | 🔲 Backlog |
-| Management commands / cron | LEM | ✅ MVP |
-| Custom admin actions | CON-02, CON-06, REL-01, REL-02 | ✅ MVP |
-| Custom admin actions (backlog) | FIN-03 | 🔲 Backlog |
+| `imoveis` | PAT | ✅ Implementado |
+| `pessoas` | PES | ✅ Implementado |
+| `contratos` | CON | ✅ Implementado |
+| `documentos` | DOC | ✅ Implementado |
+| `core` | LEM (Fase 5) | 🔄 Próximo |
+| `financeiro` | FIN | 🔲 Backlog pós-MVP |
+| `manutencao` | MAN | 🔲 Backlog pós-MVP |
+| Management commands / cron | LEM | 🔄 Próximo (Fase 5) |
+| Custom admin actions | CON-02, CON-06, REL-01, REL-02 | 🔲 Backlog |
+| Custom admin actions (backlog) | FIN-03 | 🔲 Backlog pós-MVP |

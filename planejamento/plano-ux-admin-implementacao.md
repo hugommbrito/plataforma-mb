@@ -1,23 +1,25 @@
 # Plano: UX/Admin Unfold — Configuração completa
 
+> **Status:** Fase 4 concluída. Este documento descreve o que foi implementado e o que falta para a Fase 5.
+
 ## Context
 
-O Unfold está instalado mas opera com defaults — sem `UNFOLD = {}` em settings, sem sidebar customizada, sem dashboard, e com admins usando HTML manual em vez dos utilitários semânticos do Unfold. O objetivo é implementar as melhorias do `planejamento/plano-ux-admin.md` com os arquivos existentes. O `core` app (Tarefa) não existe ainda (é Fase 5), então os itens que dependem dele ficam diferidos.
+O Unfold está instalado e configurado com sidebar customizada, dashboard, badges e tabs. O `core` app existe mas ainda não tem o model `Tarefa` (Fase 5).
 
 ---
 
-## Estado atual (o que está faltando)
+## Estado atual (Fase 4 concluída)
 
-| Arquivo | Status atual |
+| Arquivo | Status |
 |---|---|
-| `config/settings.py` | Sem `UNFOLD = {}`, `TEMPLATES DIRS: []` vazio |
-| `core/` app | Não existe (criar minimalista — sem models) |
-| `templates/admin/index.html` | Não existe |
-| `contratos/admin.py` | `status_display` usa `format_html` com cores manuais; sem tabs; sem Unfold decorators |
-| `documentos/admin.py` | Sem badge de vencimento; sem Unfold decorators |
-| `imoveis/admin.py` | `status` raw na list_display (sem badge); `registro_regularizado_display` já usa `display_for_label` corretamente |
-
-O template `imoveis/templates/admin/imoveis/imovel/change_list_after.html` **já existe** e funciona.
+| `config/settings.py` | ✅ `UNFOLD` importado de `config/unfold_config.py`; `TEMPLATES DIRS` configurado |
+| `config/unfold_config.py` | ✅ Sidebar, cores, environment callback, badge contratos vencendo, `permission_superuser` |
+| `core/` app | ✅ Existe — `core/admin.py` registra User/Group com Unfold; `core/views.py` com `dashboard_callback` |
+| `templates/admin/index.html` | ✅ Dashboard com KPIs de imóveis e gráfico de barras |
+| `contratos/admin.py` | ✅ Badge de status, tabs, `@display` para data_fim e garantia |
+| `documentos/admin.py` | ✅ Badge de vencimento, GenericFK interativa (entidade→objeto→tipo), TIPOS_POR_ENTIDADE |
+| `imoveis/admin.py` | ✅ Badge de status, tabs, totais no rodapé, campos calculados |
+| `pessoas/admin.py` | ✅ Inlines dinâmicos via `get_inlines()`, tabs nos perfis |
 
 ---
 
@@ -184,21 +186,21 @@ Referência: `planejamento/plano-ux-admin.md` linhas 207-258 (adaptar: remover b
 
 ---
 
-## Itens diferidos para Fase 5
+## Itens pendentes — Fase 5
 
-Quando `core` app e `Tarefa` model forem implementados:
-- Adicionar `TarefaAdmin` em `core/admin.py` (ver `plano-ux-admin.md` linhas 361-423)
-- Atualizar `dashboard_callback` para incluir `tarefas_urgentes`
-- Adicionar seção "Operacional / Tarefas" no SIDEBAR
-- `'core'` já estará em INSTALLED_APPS (adicionado neste sprint)
+Quando `Tarefa` model for implementado em `core/models.py`:
+- Criar `TarefaAdmin` em `core/admin.py` (ver `plano-ux-admin.md` linhas 361-423)
+- Atualizar `dashboard_callback` em `core/views.py` para incluir `tarefas_urgentes`
+- Adicionar seção "Operacional / Tarefas" no SIDEBAR em `config/unfold_config.py`
+- `'core'` já está em INSTALLED_APPS
 
 ---
 
-## Verificação
+## Verificação (Fase 4)
 
 1. `python manage.py runserver` — abrir admin, confirmar sidebar com grupos e ícones
 2. Dashboard (`/admin/`) — verificar cards KPI e gráfico de barras
-3. Contratos — verificar badge colorido no status (sem HTML inline no source)
-4. Documentos — verificar badge de vencimento na listagem
-5. Imóveis — verificar badge de status na listagem; checar totais no rodapé
+3. Contratos — verificar badge colorido no status
+4. Documentos — cadastrar documento vinculando a entidade via selects em cascata
+5. Imóveis — verificar badge de status na listagem; checar totais no rodapé; editar imóvel e confirmar campos específicos por tipo visíveis
 6. Testar alternância light/dark mode — cores oklch devem funcionar em ambos
