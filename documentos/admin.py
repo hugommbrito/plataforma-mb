@@ -15,6 +15,18 @@ T = Documento.Tipo
 _CONDITIONAL_FIELDS = build_conditional_fields(Documento.METADADOS_SCHEMA)
 _META_FIELD_NAMES = build_meta_field_names(Documento.METADADOS_SCHEMA)
 
+# Fonte única dos tipos permitidos por entidade.
+# Chave = ContentType.model (model_name em minúsculas), valor = lista de Tipo.
+TIPOS_POR_ENTIDADE = {
+    'imovel':             [T.MATRICULA, T.ESCRITURA, T.IPTU, T.LICENCA, T.CND_MUNICIPAL, T.FICHA_CADASTRAL, T.CERTIDAO_REGISTRO, T.CERTIDAO_INT_TEOR, T.ESCRITURA_PUBLICA, T.OUTRO],
+    'contrato':           [T.CONTRATO, T.ADITIVO, T.COMPROVANTE, T.SEGURO, T.OUTRO],
+    'pessoa':             [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.PROCURACAO, T.OUTRO],
+    'perfilproprietario': [T.IDENTIDADE, T.PROCURACAO, T.OUTRO],
+    'perfilcliente':      [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.CONSULTA_CREDITO, T.OUTRO],
+    'perfilimobiliaria':  [T.IDENTIDADE, T.PROCURACAO, T.LICENCA, T.OUTRO],
+    'perfilfiador':       [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.CONSULTA_CREDITO, T.OUTRO],
+}
+
 
 class _DocumentoInlineBase(GenericTabularInline):
     model = Documento
@@ -33,48 +45,52 @@ class _DocumentoInlineBase(GenericTabularInline):
 
 
 class ImovelDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.MATRICULA, T.ESCRITURA, T.IPTU, T.LICENCA, T.CND_MUNICIPAL, T.FICHA_CADASTRAL, T.CERTIDAO_REGISTRO, T.CERTIDAO_INT_TEOR, T.ESCRITURA_PUBLICA, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['imovel']
 
 
 class ContratoDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.CONTRATO, T.ADITIVO, T.COMPROVANTE, T.SEGURO, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['contrato']
 
 
 class PessoaDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.PROCURACAO, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['pessoa']
 
 
 class PerfilProprietarioDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.IDENTIDADE, T.PROCURACAO, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['perfilproprietario']
 
 
 class PerfilClienteDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.CONSULTA_CREDITO, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['perfilcliente']
 
 
 class PerfilImobiliariaDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.IDENTIDADE, T.PROCURACAO, T.LICENCA, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['perfilimobiliaria']
 
 
 class PerfilFiadorDocumentoInline(_DocumentoInlineBase):
-    tipos_permitidos = [T.IDENTIDADE, T.COMPROVANTE_RENDA, T.CONSULTA_CREDITO, T.OUTRO]
+    tipos_permitidos = TIPOS_POR_ENTIDADE['perfilfiador']
 
 
 @admin.register(Documento)
 class DocumentoAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     form = DocumentoForm
     conditional_fields = _CONDITIONAL_FIELDS
+    _extra_form_fields = ['entidade', 'objeto']
     list_display = ['tipo', 'descricao', 'entidade_display', 'vencimento_badge', 'arquivo_link', 'criado_em']
     list_filter = ['tipo']
     search_fields = ['descricao', 'arquivo']
     readonly_fields = ['entidade_display', 'arquivo_link', 'vencimento_badge', 'criado_em']
     fieldsets = [
-        ('Arquivo', {'fields': ['arquivo', 'arquivo_link', 'tipo', 'descricao']}),
+        ('Arquivo', {'fields': ['arquivo', 'arquivo_link', 'descricao']}),
+        ('Vínculo', {'fields': ['entidade', 'objeto', 'tipo']}),
         ('Campos específicos', {'fields': _META_FIELD_NAMES}),
-        ('Vínculo', {'fields': ['entidade_display']}),
         ('Prazo', {'fields': ['vencimento', 'vencimento_badge']}),
         ('Auditoria', {'fields': ['criado_em'], 'classes': ['collapse']}),
     ]
+
+    class Media:
+        js = ('documentos/js/documento_form.js',)
 
     @admin.display(description='Vinculado a')
     def entidade_display(self, obj):
