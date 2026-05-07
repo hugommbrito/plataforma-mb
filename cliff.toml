@@ -1,0 +1,51 @@
+[changelog]
+header = "# Changelog\n\nTodas as alterações relevantes deste projeto estão documentadas aqui.\n\n"
+body = """
+## [{{ version }}] — {{ timestamp | date(format="%Y-%m-%d") }}
+{% for group, commits in commits | group_by(attribute="group") %}\
+{% if commits %}\
+
+### {{ group }}
+{% for commit in commits %}\
+- {{ commit.message | upper_first }}\
+{% if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}]({{ self::remote_url() }}/pull/{{ commit.remote.pr_number }})){% endif %}
+
+{% endfor %}\
+{% endif %}\
+{% endfor %}\
+"""
+trim = true
+footer = ""
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_parsers = [
+    # ignorar commits automáticos e merges
+    { message = "^docs: atualiza CHANGELOG",                 skip = true },
+    { message = "^Merge (pull request|branch)",              skip = true },
+    { message = "Co-Authored-By:",                           skip = true },
+    # agrupamento por tipo
+    { message = "^feat",                                     group = "Novas funcionalidades" },
+    { message = "^fix",                                      group = "Correções" },
+    { message = "^refactor",                                 group = "Refatorações" },
+    { message = "^docs",                                     group = "Documentação" },
+    { message = "^perf",                                     group = "Performance" },
+    { message = "^test",                                     group = "Testes" },
+    { message = "^chore|^ci|^build",                        group = "Manutenção" },
+    { message = ".*",                                        group = "Outros" },
+]
+filter_commits = true
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+"
+topo_order = false
+sort_commits = "oldest"
+
+[bump]
+# feat!: ou BREAKING CHANGE → major
+breaking_always_bump_major = true
+# feat(app): ou fix(app): → minor (adição/remoção de app Django)
+custom_minor_increment_regex = "\\(app\\)"
+# tudo mais → patch
+features_always_bump_minor = false
+initial_tag = "v0.4.0"
