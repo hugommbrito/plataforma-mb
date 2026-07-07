@@ -27,7 +27,7 @@ class Imovel(models.Model):
             {'campo': 'banheiros',         'label': 'Banheiros',              'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'vagas',             'label': 'Vagas de Garagem',       'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'condominio_mensal', 'label': 'Condomínio Mensal (R$)', 'tipo': 'decimal', 'obrigatorio': False},
-            {'campo': 'tem_varanda',       'label': 'Possui Varanda',         'tipo': 'booelano',  'obrigatorio': False},
+            {'campo': 'tem_varanda',       'label': 'Possui Varanda',         'tipo': 'booleano',  'obrigatorio': False},
             {'campo': 'area_pivativa_real','label': 'Área Privativa Real',    'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'area_unidade',      'label': 'Área da Unidade',        'tipo': 'numero',  'obrigatorio': False},
         ],
