@@ -15,6 +15,7 @@ _STATUS_COLORS = {
     "IN": "oklch(57% 0.20  25)",   # vermelho — Inativo
     "GT": "oklch(60% 0.05 250)",   # cinza-azulado — Gest. Terc.
     "VE": "oklch(60% 0.05 250)",   # cinza-azulado — À venda
+    "VD": "oklch(45% 0.05 250)",   # cinza-azulado-escuro — Vendido
 }
 
 

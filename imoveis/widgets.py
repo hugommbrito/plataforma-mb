@@ -24,32 +24,32 @@ class EstadoWidget(UnfoldAdminTextInputWidget):
         return mark_safe(input_html + datalist)
 
 
-class CidadeWidget(UnfoldAdminTextInputWidget):
+class MunicipioWidget(UnfoldAdminTextInputWidget):
     class Media:
-        js = ('imoveis/js/cidade_estado_filter.js',)
+        js = ('imoveis/js/municipio_estado_filter.js',)
 
     def render(self, name, value, attrs=None, renderer=None):
         from .models import Imovel
         attrs = attrs or {}
         list_id = f'datalist_{name}'
         attrs['list'] = list_id
-        attrs['data-cidade-field'] = '1'
+        attrs['data-municipio-field'] = '1'
         input_html = super().render(name, value, attrs, renderer)
 
         pares = (
             Imovel.objects
-            .exclude(cidade='')
+            .exclude(municipio='')
             .exclude(estado='')
-            .values_list('estado', 'cidade')
+            .values_list('estado', 'municipio')
             .distinct()
-            .order_by('estado', 'cidade')
+            .order_by('estado', 'municipio')
         )
-        cidades_por_estado = {}
-        for estado, cidade in pares:
-            cidades_por_estado.setdefault(estado, []).append(cidade)
+        municipios_por_estado = {}
+        for estado, municipio in pares:
+            municipios_por_estado.setdefault(estado, []).append(municipio)
 
-        data_json = json.dumps(cidades_por_estado, ensure_ascii=False)
+        data_json = json.dumps(municipios_por_estado, ensure_ascii=False)
         datalist = f'<datalist id="{list_id}"></datalist>'
-        data_script = f'<script>window.__cidadesPorEstado = {data_json};</script>'
+        data_script = f'<script>window.__municipiosPorEstado = {data_json};</script>'
 
         return mark_safe(input_html + datalist + data_script)

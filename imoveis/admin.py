@@ -30,16 +30,16 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
     warn_unsaved_form = True
     list_fullwidth = True
     list_after_template = 'admin/imoveis/imovel/change_list_after.html'
-    list_display = ['nome', 'tipo', 'status_badge', 'cidade', 'estado', 'valor_mercado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'registro_regularizado_display']
-    list_filter = ['tipo', 'status', 'estado', 'cidade']
-    search_fields = ['nome', 'endereco', 'cidade', 'matricula_cartorio']
+    list_display = ['nome', 'tipo', 'status_badge', 'municipio', 'estado', 'valor_mercado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'registro_regularizado_display']
+    list_filter = ['tipo', 'status', 'estado']
+    search_fields = ['nome', 'endereco', 'municipio', 'matricula_cartorio']
     autocomplete_fields = ['titular_registro']
     inlines = [ImovelProprietarioInline, ImovelDocumentoInline]
     readonly_fields = ['registro_regularizado_display', 'valor_por_m2_display', 'participacao_interna_pct_display', 'valor_interno_display', 'criado_em', 'atualizado_em']
     fieldsets = [
         ('Identificação', {'classes': ['tab'], 'fields': ['nome', 'tipo', 'status', 'area']}),
         ('Características', {'classes': ['tab'], 'fields': _META_FIELD_NAMES}),
-        ('Localização', {'classes': ['tab'], 'fields': ['endereco', 'complemento', 'bairro', 'estado', 'cidade', 'cep']}),
+        ('Localização', {'classes': ['tab'], 'fields': ['endereco', 'complemento', 'bairro', 'estado', 'municipio', 'cep']}),
         ('Cartório e Município', {'classes': ['tab'], 'fields': [
             'matricula_cartorio', 'titular_registro', 'registro_regularizado_display',
             'matricula_municipio', 'inscricao_municipal',
@@ -75,6 +75,7 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
             'IN': ('Inativo',     'danger'),
             'GT': ('Gest. Terc.', 'default'),
             'VE': ('À venda',     'default'),
+            'VD': ('Vendido',     'default'),
         }
         texto, tipo = mapa.get(obj.status, (obj.status, 'default'))
         return display_for_label(texto, '—', {texto: tipo})

@@ -69,10 +69,11 @@ class Imovel(models.Model):
     class Status(models.TextChoices):
         DISPONIVEL = 'DI', 'Disponível'
         ALUGADO = 'AL', 'Alugado'
-        VENDA = 'VE', 'À Venda'
+        A_VENDA = 'VE', 'À Venda'
         REFORMA = 'RE', 'Em Reforma'
         INATIVO = 'IN', 'Inativo'
         GESTAO_TERCEIRO = 'GT', 'Gerido por terceiros'
+        VENDIDO = 'VD', 'Vendido'
 
     # Identificação
     nome = models.CharField(max_length=200, help_text='Nome de referência interno (ex: "Apto Centro")')
@@ -87,7 +88,7 @@ class Imovel(models.Model):
     complemento = models.CharField(max_length=100, blank=True)
     bairro = models.CharField(max_length=100, blank=True)
     estado = models.CharField(max_length=2)
-    cidade = models.CharField(max_length=100, verbose_name="Município")
+    municipio = models.CharField(max_length=100)
     cep = models.CharField('CEP', max_length=9, blank=True)
 
     # Características
@@ -130,7 +131,7 @@ class Imovel(models.Model):
         ordering = ['nome']
 
     def __str__(self):
-        return f'{self.nome} — {self.cidade}/{self.estado}'
+        return f'{self.nome} — {self.municipio}/{self.estado}'
 
     @property
     def valor_por_m2(self):

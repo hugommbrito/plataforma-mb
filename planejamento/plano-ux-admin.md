@@ -620,25 +620,31 @@ def relatorio_patrimonial(self, request, queryset):
 
 ## Checklist de implementação
 
-### Sprint atual (Fase 4)
-- [ ] Atualizar `UNFOLD` em `settings.py` com sidebar, cores e environment callback
-- [ ] Criar `core/views.py` com `dashboard_callback`
-- [ ] Criar `templates/admin/index.html` com KPIs e gráfico
-- [ ] Atualizar `contratos/admin.py` com `@display` para status, data_fim e garantia
-- [ ] Atualizar `core/admin.py` (TarefaAdmin) com badges de urgência e action de conclusão
-- [ ] Criar `documentos/admin.py` com alerts de vencimento
-- [ ] Adicionar `DocumentoInline` em Imovel, Contrato e Pessoa
+### Fase 4 — concluída ✅
+- [x] Atualizar `UNFOLD` em `settings.py` com sidebar, cores e environment callback
+- [x] Criar `core/views.py` com `dashboard_callback`
+- [x] Criar `templates/admin/index.html` com KPIs e gráfico
+- [x] Atualizar `contratos/admin.py` com `@display` para status, data_fim e garantia
+- [x] Registrar `User` e `Group` com `ModelAdmin` do Unfold em `core/admin.py`
+- [x] Criar `documentos/admin.py` com alerts de vencimento e GenericFK interativa
+- [x] Adicionar `DocumentoInline` em Imovel, Contrato, Pessoa e todos os Perfil*
+- [x] Atualizar `imoveis/admin.py` com badges, tabs e totais patrimoniais
+- [x] `pessoas/admin.py` — inlines dinâmicos via `get_inlines()` (só mostra perfis que existem)
+- [x] Renomear `cidade` → `municipio` em Imovel (model, form, admin, widget, JS, migration)
 
-### Sprint seguinte (Fase 5)
-- [ ] Atualizar `imoveis/admin.py` com `get_valor_m2`, `get_participacao_interna` e totais
-- [ ] Adicionar tabs (fieldsets com `"tab": True`) em ImovelAdmin
-- [ ] Adicionar `list_after_template` com totais patrimoniais
+### Fase 5 — próxima
+- [ ] Model `Tarefa` em `core/models.py` com GenericFK
+- [ ] `TarefaAdmin` em `core/admin.py` com badges de urgência e action de conclusão (ver plano-ux-admin.md linhas 361-423)
+- [ ] Atualizar `dashboard_callback` em `core/views.py` para incluir `tarefas_urgentes`
+- [ ] Adicionar seção "Operacional / Tarefas" no SIDEBAR em `config/unfold_config.py`
+- [ ] 6 management commands + Railway crons
+- [ ] E-mail SMTP simples
 
-### Pós-MVP
-- [ ] Custom action: `exportar_relatorio_ir` em ContratoAdmin
-- [ ] Custom action: `relatorio_patrimonial` em ImovelAdmin
-- [ ] Custom action: `calcular_reajuste` em ContratoAdmin (CON-02)
-- [ ] Custom action: `gerar_recibo_pdf` em ContratoAdmin (CON-06)
+### Fase 6 / Pós-MVP
+- [ ] Custom action: `exportar_relatorio_ir` em ContratoAdmin (REL-02)
+- [ ] Custom action: `relatorio_patrimonial` em ImovelAdmin (REL-01)
+- [ ] Custom action: `calcular_reajuste` via API BACEN em ContratoAdmin (CON-02)
+- [ ] Custom action: `gerar_recibo_pdf` via reportlab em ContratoAdmin (CON-06)
 
 ---
 

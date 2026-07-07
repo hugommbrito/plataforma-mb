@@ -33,6 +33,8 @@ Híbrido: administradora local cuida do dia-a-dia. O sistema cobre a camada estr
 
 `pessoas`, `imoveis`, `contratos`, `financeiro`, `documentos`, `core` (Tarefa/Lembrete).
 
+`core/admin.py` registra `User` e `Group` com `ModelAdmin` do Unfold (substituindo os defaults do Django) e restringe visibilidade na sidebar a superusuários via `permission_superuser` em `config/unfold_config.py`.
+
 ## Domínio
 
 **Entidades principais:** Imóvel, Contrato, Inquilino, Pagamento, Documento, Manutenção, Tarefa/Lembrete.
@@ -55,15 +57,16 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 - FKs de outras models apontam para o **perfil**, nunca para `Pessoa` direto. Ex.: `Contrato.cliente → PerfilCliente`. Isso restringe os dropdowns aos papéis corretos.
 - `on_delete=PROTECT` em todas as FKs de perfis — nunca apagar pessoas com histórico (exigência IR/auditoria).
 - Soft delete em `Pessoa` via campo `ativo`. Nunca delete físico.
-- No admin (Unfold): perfis como `StackedInline` em `PessoaAdmin` + `ModelAdmin` próprio para visões dedicadas ("Imobiliárias", "Clientes" etc).
+- No admin (Unfold): `PessoaAdmin` usa `get_inlines()` para expor apenas os perfis que a pessoa já possui (não mostra inline de perfil que não existe). Todos os inlines de perfil e documentos têm `tab = True`. Admins próprios por perfil para visões dedicadas ("Imobiliárias", "Clientes" etc).
 
 ### Utilitários e padrões de exibição
 
 - **Formatação de moeda:** `formatar_moeda(valor)` em `config/utils.py` — usar em todos os `@admin.display` que exibem R$. Retorna `'—'` para `None`.
 - **Adição de meses a datas:** `add_months(d, months)` em `config/utils.py` — soma meses a uma `date` ajustando o dia ao último do mês quando necessário (ex: 31/jan + 1 mês → 28/fev). Usar sempre que precisar calcular prazo em meses.
 - **Widgets customizados:** sempre subclassear `UnfoldAdminTextInputWidget` (não `TextInput`) para manter a estilização Tailwind do Unfold.
-- **Datalist dinâmico:** campos com sugestões baseadas em dados existentes usam `<datalist>` + JS inline (ver `imoveis/widgets.py` — `EstadoWidget` com UFs estáticos, `CidadeWidget` filtrado por estado via JSON injetado no DOM).
+- **Datalist dinâmico:** campos com sugestões baseadas em dados existentes usam `<datalist>` + JS estático (ver `imoveis/widgets.py` — `EstadoWidget` com UFs estáticos, `MunicipioWidget` filtrado por estado via JSON injetado no DOM, JS em `imoveis/static/imoveis/js/municipio_estado_filter.js`).
 - **Totais na listagem:** usar `list_after_template` + override de `changelist_view` para injetar totais no contexto (ver `ImovelAdmin`).
+- **Unfold tabs:** fieldsets com `'classes': ['tab']` são agrupados num bloco de tabs. Fieldsets **sem** essa classe são renderizados **fora** do bloco (sempre antes), independente da posição na lista. Se um fieldset precisa aparecer depois das tabs, torná-lo tab também.
 
 ### Outros padrões
 
@@ -75,19 +78,21 @@ Uma pessoa (PF ou PJ) pode exercer múltiplos papéis simultaneamente (mesmo CPF
 - **Contrato:** vigência em meses (`vigencia` IntegerField) + `renovacao_automatica` + `quant_renov_automaticas`. `data_fim` e `status` como `@property` (nunca persistidos). `status` retorna: Futuro / Ativo / Renovado / Vencido / Rescindido. `historico_precos` como `@property` detecta mudanças de `valor_aluguel` via `HistoricalRecords`. FKs: `imovel → Imovel`, `cliente → PerfilCliente`, `imobiliaria → PerfilImobiliaria` (opcional).
 - **Garantia:** `CASCADE` em relação ao contrato (garantia não existe sem contrato). Tipos: FIADOR / DEPOSITO / SEGURO / SEM_GARANTIA. FK `fiador → PerfilFiador` obrigatória apenas quando tipo = FIADOR (validado em `clean()`).
 - **Imovel.Status** inclui `GESTAO_TERCEIRO` ('GT') para imóveis administrados por terceiros sem contrato direto.
-- **Imovel.caracteristicas** JSONField com `CARACTERISTICAS_SCHEMA` na model — campos específicos por tipo de imóvel (ex: `andar`, `area_privativa` para apartamento; `area_terreno`, `testada` para terreno). `quartos` e `vagas` removidos como campos fixos — estão no schema de APARTAMENTO e CASA.
+- **Imovel.municipio** (campo renomeado de `cidade` em 2025-05): CharField com sugestões via `MunicipioWidget` (datalist dinâmico filtrado por estado). `quartos` e `vagas` removidos como campos fixos — estão no `CARACTERISTICAS_SCHEMA`.
+- **Imovel.caracteristicas** JSONField com `CARACTERISTICAS_SCHEMA` na model — campos específicos por tipo de imóvel (ex: `andar`, `area_privativa` para apartamento; `area_terreno`, `testada` para terreno).
 - **Documentos** via model genérica com `GenericForeignKey` — não uma model de documento por entidade relacionada. `METADADOS_SCHEMA` na model `Documento` define campos específicos por tipo (ex: `numero_apolice` para seguro). Upload path dinâmico: `{entidade}/{tipo-pasta}/{YYYY.MM.DD} - {tipo} - {nome}{ext}`. Storage: Cloudflare R2 via `django-storages[boto3]`, configurado condicionalmente em `settings.py` (ativo apenas quando variáveis `AWS_*` estão presentes). `GenericRelation` em `Imovel`, `Contrato`, `Pessoa` e todos os `Perfil*`.
-- **Campos dinâmicos por tipo em formulários admin:** padrão reutilizável em `config/dynamic_form.py`. `DynamicSchemaFormMixin` no ModelForm lê um schema dict e cria campos `meta_*` dinamicamente, popula do JSONField na edição e salva de volta. `DynamicSchemaAdminMixin` no ModelAdmin resolve o conflito com `modelform_factory` (que rejeita campos não-model nos fieldsets). `build_conditional_fields(schema)` gera o dict `conditional_fields` do Unfold com expressões Alpine.js `x-show` para mostrar/ocultar campos por tipo. Usado em `documentos` (metadados) e `imoveis` (características).
+- **DocumentoAdmin com GenericFK interativa:** selects em cascata — entidade → objeto → tipo → campos específicos. Entidades descobertas automaticamente via introspecção de `GenericRelation(Documento)` (novos models com essa relação aparecem no select sem alteração manual). `TIPOS_POR_ENTIDADE` em `documentos/admin.py` é a fonte única de quais tipos são permitidos por entidade; inlines referenciam esse dict. View AJAX em `/documentos/ajax/objetos/?ct=<id>` retorna objetos e tipos filtrados. JS em `documentos/static/documentos/js/documento_form.js` gerencia a cascata e preserva valores na edição.
+- **Campos dinâmicos por tipo em formulários admin:** padrão reutilizável em `config/dynamic_form.py`. `DynamicSchemaFormMixin` no ModelForm lê um schema dict e cria campos `meta_*` dinamicamente, popula do JSONField na edição e salva de volta. `DynamicSchemaAdminMixin` no ModelAdmin resolve o conflito com `modelform_factory`; suporta `_extra_form_fields` para excluir campos não-model (ex: `entidade`, `objeto` do DocumentoAdmin). `build_conditional_fields(schema)` gera o dict `conditional_fields` do Unfold com expressões Alpine.js `x-show`. O campo discriminador usa `x-model.fill` (não `x-model`) para que Alpine leia o valor já renderizado pelo Django ao abrir um registro existente — sem o `.fill`, o Unfold inicializa `x-data` com `null` e o Alpine sobrescreve o select, ocultando todos os campos. Usado em `documentos` (metadados) e `imoveis` (características).
 
 ## Roadmap MVP
 
 Ordem de implementação acordada (~13-20 dias com dedicação parcial):
 
 - **Fase 0 — Setup:** projeto Django + Unfold, Neon via `DATABASE_URL`, deploy inicial Railway, env vars. ✅
-- **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único (dígitos), 4 `Perfil*` MVP via OneToOne, máscara CPF/CNPJ no widget, admin com inlines + admins próprios por perfil, soft delete via `ativo`. ✅
+- **Fase 1 — Pessoas (PES):** `Pessoa` com `cpf_cnpj` único (dígitos), 4 `Perfil*` MVP via OneToOne, máscara CPF/CNPJ no widget, admin com inlines dinâmicos por perfil existente + admins próprios por perfil, soft delete via `ativo`. ✅
 - **Fase 2 — Imóveis (PAT):** `Imovel` + through `ImovelProprietario`, `clean()` valida soma ≤ 1, `@property` calculadas (`valor_por_m2`, `participacao_interna_pct`, `valor_interno`), django-simple-history. ✅
 - **Fase 3 — Contratos (CON):** `Contrato` + `Garantia`, histórico de auditoria, status calculado, custom actions (reajuste IGPM/IPCA, recibo PDF). ✅ (reajuste e recibo PDF → backlog)
-- **Fase 4 — Documentos (DOC):** `Documento` com `GenericForeignKey`, `METADADOS_SCHEMA` com campos específicos por tipo, upload R2 (django-storages[boto3], configuração condicional), inlines filtrados por tipo em cada entidade, admin com campos dinâmicos via Alpine.js. `DynamicSchemaFormMixin` / `DynamicSchemaAdminMixin` em `config/dynamic_form.py` para reutilização. `Imovel.CARACTERISTICAS_SCHEMA` + campo `caracteristicas` JSONField; remoção de `quartos` e `vagas` como campos fixos. ✅
+- **Fase 4 — Documentos (DOC):** `Documento` com `GenericForeignKey`, `METADADOS_SCHEMA` com campos específicos por tipo, upload R2, inlines filtrados por tipo em cada entidade, admin com GenericFK interativa (entidade→objeto→tipo) e campos dinâmicos via Alpine.js. `DynamicSchemaFormMixin` / `DynamicSchemaAdminMixin` em `config/dynamic_form.py`. `Imovel.CARACTERISTICAS_SCHEMA` + `caracteristicas` JSONField; campo `municipio` (renomeado de `cidade`). ✅
 - **Fase 5 — Lembretes (LEM):** `Tarefa` com GenericFK, 6 management commands, Railway crons, e-mail SMTP simples.
 - **Fase 6 — Relatórios (REL):** custom actions — patrimonial consolidado, rendimentos por CPF (IR), DRE por imóvel.
 
@@ -102,3 +107,4 @@ Detalhamento completo em [planejamento.html](planejamento.html) e [historias_usu
 - Código em Python/Django salvo pedido explícito em contrário.
 - Considerar produção em Railway + Neon + R2 ao propor configurações.
 - Automações e tarefas agendadas: primeira escolha são **migrations** e **management commands** (acionados por Railway cron).
+- Sempre rodar `python manage.py check` antes de `makemigrations`. Venv em `.venv/bin/activate`.

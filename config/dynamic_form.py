@@ -115,7 +115,10 @@ class DynamicSchemaFormMixin:
         schema = self.schema
 
         if self.discriminator_field in self.fields:
-            self.fields[self.discriminator_field].widget.attrs['x-model'] = self.discriminator_field
+            # fill: Alpine lê o valor atual do elemento quando o dado reativo é null/vazio,
+            # evitando que o x-data (inicializado com null pelo Unfold) sobrescreva o valor
+            # renderizado pelo Django (necessário para mostrar campos ao editar registros).
+            self.fields[self.discriminator_field].widget.attrs['x-model.fill'] = self.discriminator_field
 
         meta_info = build_meta_info(schema)
         for campo, info in meta_info.items():
@@ -202,10 +205,15 @@ class DynamicSchemaAdminMixin:
     """
 
     _meta_prefix = 'meta_'
+    _extra_form_fields: list = []  # campos não-model adicionados ao form (ex: campos de GenericFK interativa)
 
     def get_form(self, request, obj=None, change=False, **kwargs):
         all_fields = kwargs.pop('fields', None) or flatten_fieldsets(self.get_fieldsets(request, obj))
         readonly = set(self.get_readonly_fields(request, obj))
+        extra = set(self._extra_form_fields)
         prefix = self._meta_prefix
-        kwargs['fields'] = [f for f in all_fields if not f.startswith(prefix) and f not in readonly]
+        kwargs['fields'] = [
+            f for f in all_fields
+            if not f.startswith(prefix) and f not in readonly and f not in extra
+        ]
         return super().get_form(request, obj, change, **kwargs)

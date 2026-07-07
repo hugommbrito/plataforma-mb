@@ -19,9 +19,13 @@ def permission_superuser(request):
 
 def environment_callback(request):
     import os
-    if os.environ.get("RAILWAY_ENVIRONMENT"):
+    railway_environment = os.environ.get("RAILWAY_ENVIRONMENT_NAME")
+    if railway_environment == 'production':
         return ["Produção", "danger"]
-    return ["Local", "info"]
+    if railway_environment == 'Development':
+        return ["Deploy Desenvolvimento", "info"]
+    
+    return ["Local", "success"]
 
 
 UNFOLD = {
