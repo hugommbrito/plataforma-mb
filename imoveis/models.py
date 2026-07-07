@@ -69,10 +69,11 @@ class Imovel(models.Model):
     class Status(models.TextChoices):
         DISPONIVEL = 'DI', 'Disponível'
         ALUGADO = 'AL', 'Alugado'
-        VENDA = 'VE', 'À Venda'
+        A_VENDA = 'VE', 'À Venda'
         REFORMA = 'RE', 'Em Reforma'
         INATIVO = 'IN', 'Inativo'
         GESTAO_TERCEIRO = 'GT', 'Gerido por terceiros'
+        VENDIDO = 'VD', 'Vendido'
 
     # Identificação
     nome = models.CharField(max_length=200, help_text='Nome de referência interno (ex: "Apto Centro")')

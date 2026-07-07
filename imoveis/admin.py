@@ -75,6 +75,7 @@ class ImovelAdmin(DynamicSchemaAdminMixin, ModelAdmin):
             'IN': ('Inativo',     'danger'),
             'GT': ('Gest. Terc.', 'default'),
             'VE': ('À venda',     'default'),
+            'VD': ('Vendido',     'default'),
         }
         texto, tipo = mapa.get(obj.status, (obj.status, 'default'))
         return display_for_label(texto, '—', {texto: tipo})
