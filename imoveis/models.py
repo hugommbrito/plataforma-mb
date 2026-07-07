@@ -22,11 +22,14 @@ class Imovel(models.Model):
         Tipo.APARTAMENTO: [
             {'campo': 'andar',             'label': 'Andar',                  'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'numero_unidade',    'label': 'Número da Unidade',      'tipo': 'texto',   'obrigatorio': False},
+            {'campo': 'suites',            'label': 'Suítes',                 'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'quartos',           'label': 'Quartos',                'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'banheiros',         'label': 'Banheiros',              'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'vagas',             'label': 'Vagas de Garagem',       'tipo': 'numero',  'obrigatorio': False},
             {'campo': 'condominio_mensal', 'label': 'Condomínio Mensal (R$)', 'tipo': 'decimal', 'obrigatorio': False},
-            {'campo': 'tem_varanda',        'label': 'Possui Varanda',          'tipo': 'booleano','obrigatorio': False},
+            {'campo': 'tem_varanda',       'label': 'Possui Varanda',         'tipo': 'booleano',  'obrigatorio': False},
+            {'campo': 'area_pivativa_real','label': 'Área Privativa Real',    'tipo': 'numero',  'obrigatorio': False},
+            {'campo': 'area_unidade',      'label': 'Área da Unidade',        'tipo': 'numero',  'obrigatorio': False},
         ],
         Tipo.CASA: [
             {'campo': 'quartos',           'label': 'Quartos',                'tipo': 'numero',  'obrigatorio': False},
